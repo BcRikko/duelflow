@@ -7,6 +7,7 @@ const neuronCardSchema = z.object({
   id: z.string(),
   name: z.string(),
   quantity: z.number().int().min(1),
+  type: z.string().optional(),
   imageUrl: z
     .string()
     .max(2048)
@@ -42,7 +43,7 @@ export function convertNeuronToComboDocument(data: NeuronDeckData): ComboDocumen
           id: card.id,
           name: card.name,
           imageUrl: card.imageUrl,
-          type: '',
+          type: card.type || '',
         });
       }
 

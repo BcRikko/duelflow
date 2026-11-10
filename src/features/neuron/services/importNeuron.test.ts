@@ -7,10 +7,10 @@ function createNeuronData() {
       id: 'neuron_deck_1',
       name: 'ニューロンデッキ',
       main: [
-        { id: 'card_1', name: 'カードA', quantity: 2, imageUrl: 'http://example.com/a.jpg' },
+        { id: 'card_1', name: 'カードA', quantity: 2, type: '効果モンスター', imageUrl: 'http://example.com/a.jpg' },
       ],
-      ex: [{ id: 'card_2', name: 'カードB', quantity: 1, imageUrl: '' }],
-      side: [{ id: 'card_3', name: 'カードC', quantity: 3, imageUrl: '' }],
+      ex: [{ id: 'card_2', name: 'カードB', quantity: 1, type: '融合モンスター', imageUrl: '' }],
+      side: [{ id: 'card_3', name: 'カードC', quantity: 3, type: '魔法', imageUrl: '' }],
     },
   };
 }
@@ -66,5 +66,20 @@ describe('convertNeuronToComboDocument', () => {
     data.deck.id = '';
     const doc = convertNeuronToComboDocument(data);
     expect(doc.deck.id.startsWith('deck_')).toBe(true);
+  });
+
+  it('カード種別を反映する', () => {
+    const data = createNeuronData();
+    const doc = convertNeuronToComboDocument(data);
+    expect(doc.cardCatalog[0].type).toBe('効果モンスター');
+    expect(doc.cardCatalog[1].type).toBe('融合モンスター');
+    expect(doc.cardCatalog[2].type).toBe('魔法');
+  });
+
+  it('type が未指定の場合は空文字になる', () => {
+    const data = createNeuronData();
+    data.deck.main[0].type = undefined;
+    const doc = convertNeuronToComboDocument(data);
+    expect(doc.cardCatalog[0].type).toBe('');
   });
 });

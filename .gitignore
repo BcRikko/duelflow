@@ -13,6 +13,8 @@ dist-ssr
 *.local
 .env*
 coverage
+sample.html
+sampledata
 
 # Editor directories and files
 .vscode/*

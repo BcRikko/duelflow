@@ -8,6 +8,7 @@ describe('RouteControls', () => {
   beforeEach(() => {
     resetStore();
     vi.stubGlobal('confirm', () => true);
+    vi.stubGlobal('prompt', () => 'New Route');
   });
 
   afterEach(() => {

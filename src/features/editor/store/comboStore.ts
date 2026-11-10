@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateId } from '../../../shared/id';
+import { clearAllCardImages, saveCardImage } from '../../../shared/imageStorage';
 import { validateComboDocument } from '../../combo/model/schema';
 import type {
   ActionStep,
@@ -13,6 +14,8 @@ import type {
 } from '../../combo/model/types';
 import type { NodeFormData } from '../model/form';
 import { createDefaultNodeFormData } from '../model/form';
+import type { ParsedNeuronDeck } from '../../neuron/services/parseNeuronHtml';
+import { buildComboDocumentFromParsedNeuron } from '../../neuron/services/parseNeuronHtml';
 import { calculateLayout, getRouteOffset } from './layout';
 
 type EditorSelection =
@@ -79,6 +82,7 @@ type ComboActions = {
 
   // Document I/O
   importDocument: (doc: ComboDocument) => void;
+  importNeuronHtml: (data: ParsedNeuronDeck, imageFiles: File[]) => Promise<void>;
   exportDocument: () => ComboDocument;
   updateDocument: (updates: Partial<ComboDocument>) => void;
 
@@ -87,6 +91,9 @@ type ComboActions = {
   redo: () => void;
   canUndo: () => boolean;
   canRedo: () => boolean;
+
+  // Reset
+  clearAll: () => Promise<void>;
 };
 
 function createEmptyDocument(): ComboDocument {
@@ -106,10 +113,10 @@ function createEmptyDocument(): ComboDocument {
   };
 }
 
-function createInitialRoute(): Route {
+function createInitialRoute(name = '新規ルート'): Route {
   return {
     id: generateId('route_'),
-    name: '新規ルート',
+    name,
     description: '',
     startingCardIds: [],
     steps: [],
@@ -239,6 +246,24 @@ export const useComboStore = create<ComboState & ComboActions>()(
 
       setNodeEditing: (editing) => set({ isNodeEditing: editing }),
 
+      clearAll: async () => {
+        const emptyDocument = createEmptyDocument();
+        const initialRoute = createInitialRoute(emptyDocument.deck.name);
+        skipHistory(() =>
+          set({
+            document: { ...emptyDocument, routes: [initialRoute] },
+            currentRouteId: initialRoute.id,
+            selection: null,
+            selectedCardIdForAdd: null,
+            addNodeForm: createDefaultNodeFormData(),
+            past: [],
+            future: [],
+            isNodeEditing: false,
+          }),
+        );
+        await clearAllCardImages();
+      },
+
       selectStep: (id) =>
         set({ selection: id ? { type: 'step', id } : null, selectedCardIdForAdd: null }),
       selectConnection: (id) =>
@@ -263,10 +288,9 @@ export const useComboStore = create<ComboState & ComboActions>()(
         })),
 
       addRoute: (name) => {
-        const newRoute = createInitialRoute();
-        if (name) {
-          newRoute.name = name;
-        }
+        const { document } = get();
+        const routeName = name?.trim() || document.deck.name || '新規ルート';
+        const newRoute = createInitialRoute(routeName);
         set((state) => ({
           document: { ...state.document, routes: [...state.document.routes, newRoute] },
           currentRouteId: newRoute.id,
@@ -279,9 +303,13 @@ export const useComboStore = create<ComboState & ComboActions>()(
 
       deleteRoute: (id) => {
         set((state) => {
+          let routes = state.document.routes.filter((r) => r.id !== id);
+          if (routes.length === 0) {
+            routes = [createInitialRoute(state.document.deck.name || '新規ルート')];
+          }
           const document = relayoutDocument({
             ...state.document,
-            routes: state.document.routes.filter((r) => r.id !== id),
+            routes,
           });
           return {
             document,
@@ -646,6 +674,76 @@ export const useComboStore = create<ComboState & ComboActions>()(
         });
       },
 
+      importNeuronHtml: async (data, imageFiles) => {
+        function normalizeFileName(name: string): string {
+          try {
+            return decodeURIComponent(name).normalize('NFC');
+          } catch {
+            return name.normalize('NFC');
+          }
+        }
+
+        function extractBasename(src: string): string {
+          const withoutQuery = src.split('?')[0]?.split('#')[0] ?? '';
+          return (
+            withoutQuery.split('/').pop() ?? withoutQuery.split('\\').pop() ?? ''
+          );
+        }
+
+        function findImageFile(
+          srcBasename: string,
+          fileMap: Map<string, File>,
+        ): File | undefined {
+          const normalized = normalizeFileName(srcBasename);
+          const exact = fileMap.get(normalized);
+          if (exact) return exact;
+
+          // 拡張子が OS により異なる場合のフォールバック
+          // 例: HTML 側が "...action.ダウンロード"、ファイル側が "...action"
+          const dotIndex = normalized.lastIndexOf('.');
+          if (dotIndex <= 0) return undefined;
+          const prefix = normalized.slice(0, dotIndex);
+          for (const [fileName, file] of fileMap) {
+            if (fileName.startsWith(prefix)) return file;
+          }
+          return undefined;
+        }
+
+        const imageFileMap = new Map(
+          imageFiles.map((file) => [normalizeFileName(file.name), file]),
+        );
+        const doc = buildComboDocumentFromParsedNeuron(data);
+
+        const savePromises: Promise<void>[] = [];
+        for (const card of doc.cardCatalog) {
+          const imageSrc = data.main
+            .concat(data.ex)
+            .concat(data.side)
+            .find((c) => c.id === card.id)?.imageSrc;
+          if (!imageSrc) continue;
+
+          const basename = extractBasename(imageSrc);
+          if (!basename) continue;
+
+          const file = findImageFile(basename, imageFileMap);
+          if (file) {
+            savePromises.push(saveCardImage(card.id, card.name, file));
+          } else {
+            // eslint-disable-next-line no-console
+            console.warn(`[importNeuronHtml] 画像ファイルが見つかりません: ${basename}`);
+          }
+        }
+
+        await Promise.all(savePromises);
+
+        const relayouted = relayoutDocument(doc);
+        set({
+          document: relayouted,
+          currentRouteId: relayouted.routes[0]?.id ?? null,
+          selection: null,
+        });
+      },
+
       exportDocument: () => {
         return get().document;
       },
@@ -730,7 +828,7 @@ export const useComboStore = create<ComboState & ComboActions>()(
 
         // ルートが1つもない場合は初期ルートを作成
         if (document.routes.length === 0) {
-          const route = createInitialRoute();
+          const route = createInitialRoute(document.deck.name || '新規ルート');
           document = { ...document, routes: [route] };
           currentRouteId = route.id;
         }

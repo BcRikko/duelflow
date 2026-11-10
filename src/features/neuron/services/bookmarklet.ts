@@ -98,6 +98,15 @@ const BOOKMARKLET_SCRIPT = String.raw`
     { selector: '#side_list', key: 'side' },
   ];
 
+  function detectTypeFromIcon(iconSrc) {
+    if (!iconSrc) return '';
+    if (iconSrc.includes('card_icon_effect')) return '効果モンスター';
+    if (iconSrc.includes('card_icon_link')) return 'リンクモンスター';
+    if (iconSrc.includes('card_icon_spell')) return '魔法';
+    if (iconSrc.includes('card_icon_trap')) return '罠';
+    return '';
+  }
+
   const result = {
     main: [],
     ex: [],
@@ -113,11 +122,13 @@ const BOOKMARKLET_SCRIPT = String.raw`
       const nameEl = row.querySelector('.card_name span');
       const numEl = row.querySelector('.num span');
       const linkEl = row.querySelector('.link_value');
+      const iconEl = row.querySelector('.c_img img');
 
       if (!nameEl || !numEl) continue;
 
       const name = nameEl.textContent.trim();
       const quantity = parseInt(numEl.textContent.trim(), 10) || 1;
+      const type = detectTypeFromIcon(iconEl?.src);
 
       let cardId = null;
       const linkValue = linkEl?.value || '';
@@ -134,6 +145,7 @@ const BOOKMARKLET_SCRIPT = String.raw`
         id: cardId,
         name: name,
         quantity: quantity,
+        type: type,
         imageUrl: '',
       });
     }

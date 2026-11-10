@@ -1,3 +1,4 @@
+import { ClearAllButton } from './ClearAllButton';
 import { DeckNameInput } from './DeckNameInput';
 import { HistoryControls } from './HistoryControls';
 import { ImportExportControls } from './ImportExportControls';
@@ -10,6 +11,7 @@ export function Header() {
       <DeckNameInput />
       <HistoryControls />
       <RouteControls />
+      <ClearAllButton />
       <ImportExportControls />
     </header>
   );

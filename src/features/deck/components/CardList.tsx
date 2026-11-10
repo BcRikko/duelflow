@@ -2,8 +2,25 @@ import { useState } from 'react';
 import { DropActionToolbar } from '../../editor/components/DropActionToolbar';
 import { NodeAddToolbar } from '../../editor/components/NodeAddToolbar';
 import { useComboStore } from '../../editor/store/comboStore';
+import { useCardImageUrl } from '../../../shared/useCardImageUrl';
+import type { Card } from '../../combo/model/types';
 import { CardForm } from './CardForm';
 import styles from './CardList.module.css';
+
+type CardListImageProps = {
+  card: Card;
+};
+
+function CardListImage({ card }: CardListImageProps) {
+  const localImageUrl = useCardImageUrl(card.id, card.name);
+  const src = localImageUrl || card.imageUrl;
+
+  if (src) {
+    return <img src={src} alt={card.name} className={styles.image} />;
+  }
+
+  return <div className={styles.placeholder}>{card.name.charAt(0)}</div>;
+}
 
 export function CardList() {
   const cards = useComboStore((state) => state.document.cardCatalog);
@@ -51,11 +68,7 @@ export function CardList() {
             }}
           >
             <div className={styles.imageWrapper}>
-              {card.imageUrl ? (
-                <img src={card.imageUrl} alt={card.name} className={styles.image} />
-              ) : (
-                <div className={styles.placeholder}>{card.name.charAt(0)}</div>
-              )}
+              <CardListImage card={card} />
             </div>
             <div className={styles.info}>
               <span className={styles.name}>{card.name}</span>

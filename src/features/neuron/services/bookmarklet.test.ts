@@ -29,4 +29,15 @@ describe('generateBookmarkletCode', () => {
     const code = generateBookmarkletCode();
     expect(code).toContain('copyToClipboard');
   });
+
+  it('カード種別の取得処理を含む', () => {
+    const code = generateBookmarkletCode();
+    expect(code).toContain('detectTypeFromIcon');
+    expect(code).toContain('card_icon_effect');
+  });
+
+  it('出力JSONに type フィールドを含む', () => {
+    const code = generateBookmarkletCode();
+    expect(code).toContain('type: type');
+  });
 });

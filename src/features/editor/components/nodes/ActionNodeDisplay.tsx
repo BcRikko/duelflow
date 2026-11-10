@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { getActionLabels } from '../../../../shared/actionDefinitions';
 import type { StepCardRole } from '../../../combo/model/types';
+import { useCardImageUrl } from '../../../../shared/useCardImageUrl';
 import { useComboStore } from '../../store/comboStore';
 import { NodeDeleteButton } from './NodeDeleteButton';
 import { NodeHandles } from './NodeHandles';
@@ -22,6 +23,17 @@ type Props = {
   onDelete: (e: React.MouseEvent) => void;
 };
 
+function ActionNodeImage({ data }: { data: ActionNodeData }) {
+  const localImageUrl = useCardImageUrl(data.cardId, data.cardName);
+  const src = localImageUrl || data.imageUrl;
+
+  if (src) {
+    return <img src={src} alt={data.cardName} className={styles.image} />;
+  }
+
+  return <div className={styles.placeholder}>{data.cardName.charAt(0)}</div>;
+}
+
 export const ActionNodeDisplay = memo(function ActionNodeDisplay({
   data,
   selected,
@@ -38,11 +50,7 @@ export const ActionNodeDisplay = memo(function ActionNodeDisplay({
       <NodeHandles />
       <div className={styles.content}>
         <div className={styles.mainInfo}>
-          {data.imageUrl ? (
-            <img src={data.imageUrl} alt={data.cardName} className={styles.image} />
-          ) : (
-            <div className={styles.placeholder}>{data.cardName.charAt(0)}</div>
-          )}
+          <ActionNodeImage data={data} />
           <div className={styles.info}>
             <div className={styles.actionLabel}>{getActionLabels(data.actions ?? [])}</div>
             <div className={styles.cardName}>{data.cardName}</div>

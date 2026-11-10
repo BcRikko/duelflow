@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { getCardImage } from '../../../shared/imageStorage';
 import { createDefaultNodeFormData } from '../model/form';
 import {
   findRouteByConnectionId,
@@ -16,6 +17,11 @@ function createEmptyDoc() {
     cardCatalog: [],
     routes: [],
   };
+}
+
+function createJpegFile(name: string): File {
+  const content = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46]);
+  return new File([content], name);
 }
 
 beforeEach(() => {
@@ -61,8 +67,10 @@ describe('ルート管理', () => {
   it('ルートを削除する', () => {
     const id = addRouteAndSelect();
     useComboStore.getState().deleteRoute(id);
-    expect(useComboStore.getState().document.routes).toHaveLength(0);
-    expect(useComboStore.getState().currentRouteId).toBeNull();
+    // 最後のルートを削除しても、空のキャンバスを防ぐため新規ルートが作成される
+    expect(useComboStore.getState().document.routes).toHaveLength(1);
+    expect(useComboStore.getState().document.routes[0].name).toBe('Test');
+    expect(useComboStore.getState().currentRouteId).not.toBeNull();
   });
 
   it('ルート情報を更新する', () => {
@@ -379,6 +387,109 @@ describe('ドキュメント入出力', () => {
   it('無効なドキュメントはインポートエラーになる', () => {
     const doc = { invalid: true };
     expect(() => useComboStore.getState().importDocument(doc as never)).toThrow();
+  });
+
+  it('保存HTMLからインポートすると画像をIndexedDBに保存する', async () => {
+    const imgFile = createJpegFile('get_image(0).action.ダウンロード');
+    await useComboStore.getState().importNeuronHtml(
+      {
+        name: 'HTML Deck',
+        main: [
+          {
+            id: 'neuron_1',
+            name: 'Card A',
+            quantity: 1,
+            type: '効果モンスター',
+            imageSrc: './test_files/get_image(0).action.ダウンロード',
+          },
+        ],
+        ex: [],
+        side: [],
+      },
+      [imgFile],
+    );
+
+    expect(useComboStore.getState().document.deck.name).toBe('HTML Deck');
+    expect(useComboStore.getState().document.cardCatalog[0].type).toBe('効果モンスター');
+
+    const saved = await getCardImage('neuron_1');
+    expect(saved).not.toBeNull();
+  });
+
+  it('clearAll でドキュメントと履歴がリセットされる', async () => {
+    useComboStore.getState().addCardToCatalog({ name: 'Card', type: '効果モンスター', quantity: 1 });
+    const routeId = useComboStore.getState().addRoute('Route');
+    useComboStore.getState().selectRoute(routeId);
+    useComboStore.getState().selectStep('nonexistent');
+    useComboStore.getState().setNodeEditing(true);
+
+    await useComboStore.getState().clearAll();
+
+    const state = useComboStore.getState();
+    expect(state.document.cardCatalog).toHaveLength(0);
+    // クリア後も空のキャンバスを防ぐため初期ルートが1つ残る
+    expect(state.document.routes).toHaveLength(1);
+    expect(state.document.routes[0].name).toBe('新規デッキ');
+    expect(state.document.deck.name).toBe('新規デッキ');
+    expect(state.currentRouteId).toBe(state.document.routes[0].id);
+    expect(state.selection).toBeNull();
+    expect(state.past).toHaveLength(0);
+    expect(state.future).toHaveLength(0);
+    expect(state.isNodeEditing).toBe(false);
+  });
+
+  it('ファイル名のUnicode正規化が異なっても画像をマッチできる', async () => {
+    // macOS はファイル名を NFD で扱うことがある
+    const nfdName = 'get_image(0).action.ダウンロード'.normalize('NFD');
+    const imgFile = createJpegFile(nfdName);
+
+    await useComboStore.getState().importNeuronHtml(
+      {
+        name: 'HTML Deck',
+        main: [
+          {
+            id: 'neuron_1',
+            name: 'Card A',
+            quantity: 1,
+            type: '効果モンスター',
+            // HTML 側は通常 NFC
+            imageSrc: './test_files/get_image(0).action.ダウンロード',
+          },
+        ],
+        ex: [],
+        side: [],
+      },
+      [imgFile],
+    );
+
+    const saved = await getCardImage('neuron_1');
+    expect(saved).not.toBeNull();
+  });
+
+  it('URLエンコード・クエリ文字列・拡張子違いでも画像をマッチできる', async () => {
+    // ファイル側の拡張子が OS によって異なるケース
+    const imgFile = createJpegFile('get_image(0).action');
+
+    await useComboStore.getState().importNeuronHtml(
+      {
+        name: 'HTML Deck',
+        main: [
+          {
+            id: 'neuron_1',
+            name: 'Card A',
+            quantity: 1,
+            type: '効果モンスター',
+            imageSrc: './test_files/get_image%280%29.action.%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89?foo=bar',
+          },
+        ],
+        ex: [],
+        side: [],
+      },
+      [imgFile],
+    );
+
+    const saved = await getCardImage('neuron_1');
+    expect(saved).not.toBeNull();
   });
 
   it('デッキ名を更新する', () => {
