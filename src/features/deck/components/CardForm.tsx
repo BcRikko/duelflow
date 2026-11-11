@@ -14,10 +14,11 @@ export function CardForm({ onClose }: CardFormProps) {
   const [name, setName] = useState('');
   const [type, setType] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || isSubmitting) return;
 
     const trimmedUrl = imageUrl.trim();
     if (!isSafeImageUrl(trimmedUrl)) {
@@ -26,13 +27,15 @@ export function CardForm({ onClose }: CardFormProps) {
       return;
     }
 
-    const id = addCardToCatalog({
+    setIsSubmitting(true);
+    const id = await addCardToCatalog({
       name: name.trim(),
       type: type.trim() || 'モンスター',
       imageUrl: trimmedUrl,
     });
 
     selectCardForAdd(id);
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -84,7 +87,7 @@ export function CardForm({ onClose }: CardFormProps) {
             <button type="button" onClick={onClose} className={styles.cancel}>
               キャンセル
             </button>
-            <button type="submit" className={styles.submit}>
+            <button type="submit" className={styles.submit} disabled={isSubmitting}>
               追加
             </button>
           </div>

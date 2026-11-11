@@ -3,11 +3,11 @@ import { useComboStore } from '../store/comboStore';
 import styles from './NodeAddToolbar.module.css';
 
 export function NodeAddToolbar() {
-  const currentRouteId = useComboStore((state) => state.currentRouteId);
+  const currentRouteId = useComboStore((state) => state.currentDeck?.currentRouteId ?? null);
   const addStepAtPosition = useComboStore((state) => state.addStepAtPosition);
   const stepCount = useComboStore((state) =>
     currentRouteId
-      ? (state.document.routes.find((r) => r.id === currentRouteId)?.steps.length ?? 0)
+      ? (state.currentDeck?.routes.find((r) => r.id === currentRouteId)?.steps.length ?? 0)
       : 0,
   );
 

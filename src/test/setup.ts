@@ -6,7 +6,12 @@ if (typeof indexedDB === 'undefined') {
   globalThis.indexedDB = new IDBFactory();
 }
 
-// localStorage をテストごとにクリア
-beforeEach(() => {
+// localStorage / IndexedDB をテストごとにクリア
+beforeEach(async () => {
   localStorage.clear();
+  await new Promise<void>((resolve, reject) => {
+    const request = indexedDB.deleteDatabase('duelflow');
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
 });

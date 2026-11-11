@@ -25,7 +25,7 @@ describe('HistoryControls', () => {
     useComboStore.getState().addRoute();
     render(<HistoryControls />);
     fireEvent.click(screen.getByText('↩ 元に戻す'));
-    expect(useComboStore.getState().document.routes).toHaveLength(0);
+    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(1);
   });
 
   it('Redo ボタンでやり直す', () => {
@@ -33,14 +33,14 @@ describe('HistoryControls', () => {
     performUndo();
     render(<HistoryControls />);
     fireEvent.click(screen.getByText('↪ やり直し'));
-    expect(useComboStore.getState().document.routes).toHaveLength(1);
+    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(2);
   });
 
   it('Ctrl+Z で元に戻す', () => {
     useComboStore.getState().addRoute();
     render(<HistoryControls />);
     fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
-    expect(useComboStore.getState().document.routes).toHaveLength(0);
+    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(1);
   });
 
   it('Ctrl+Y でやり直す', () => {
@@ -48,6 +48,6 @@ describe('HistoryControls', () => {
     performUndo();
     render(<HistoryControls />);
     fireEvent.keyDown(window, { key: 'y', ctrlKey: true });
-    expect(useComboStore.getState().document.routes).toHaveLength(1);
+    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(2);
   });
 });

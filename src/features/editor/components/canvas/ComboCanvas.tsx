@@ -33,9 +33,10 @@ const edgeTypes = {
 };
 
 function CanvasContent() {
-  const routes = useComboStore((state) => state.document.routes);
-  const currentRouteId = useComboStore((state) => state.currentRouteId);
-  const cardCatalog = useComboStore((state) => state.document.cardCatalog);
+  const currentDeck = useComboStore((state) => state.currentDeck);
+  const routes = useMemo(() => currentDeck?.routes ?? [], [currentDeck]);
+  const currentRouteId = currentDeck?.currentRouteId ?? null;
+  const cardCatalog = useComboStore((state) => state.cards);
   const selection = useComboStore((state) => state.selection);
   const addNodeForm = useComboStore((state) => state.addNodeForm);
   const isNodeEditing = useComboStore((state) => state.isNodeEditing);
@@ -336,7 +337,7 @@ function CanvasContent() {
         return;
       }
 
-      store.getState().panBy({ x: 0, y: e.deltaY });
+      store.getState().panBy({ x: 0, y: -e.deltaY });
     };
 
     element.addEventListener('wheel', handleWheel, { passive: false });

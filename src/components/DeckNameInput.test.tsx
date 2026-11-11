@@ -19,6 +19,6 @@ describe('DeckNameInput', () => {
     fireEvent.change(screen.getByPlaceholderText('デッキ名'), {
       target: { value: '新しいデッキ' },
     });
-    expect(useComboStore.getState().document.deck.name).toBe('新しいデッキ');
+    expect(useComboStore.getState().currentDeck?.name).toBe('新しいデッキ');
   });
 });

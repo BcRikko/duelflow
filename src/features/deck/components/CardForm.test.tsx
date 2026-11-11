@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useComboStore } from '../../editor/store/comboStore';
 import { resetStore } from '../../../test/helpers';
@@ -14,24 +14,28 @@ describe('CardForm', () => {
     expect(screen.getByText('カードを追加')).not.toBeNull();
   });
 
-  it('カード名を入力して追加するとストアに登録される', () => {
+  it('カード名を入力して追加するとストアに登録される', async () => {
     render(<CardForm onClose={vi.fn()} />);
     fireEvent.change(screen.getByPlaceholderText('カード名'), {
       target: { value: 'ブラック・マジシャン' },
     });
     fireEvent.click(screen.getByText('追加'));
-    expect(useComboStore.getState().document.cardCatalog).toHaveLength(1);
-    expect(useComboStore.getState().document.cardCatalog[0].name).toBe('ブラック・マジシャン');
+    await waitFor(() => {
+      expect(useComboStore.getState().cards).toHaveLength(1);
+      expect(useComboStore.getState().cards[0].name).toBe('ブラック・マジシャン');
+    });
   });
 
-  it('種別プリセットボタンで種別を設定できる', () => {
+  it('種別プリセットボタンで種別を設定できる', async () => {
     render(<CardForm onClose={vi.fn()} />);
     fireEvent.click(screen.getByText('魔法'));
     fireEvent.change(screen.getByPlaceholderText('カード名'), {
       target: { value: 'カード' },
     });
     fireEvent.click(screen.getByText('追加'));
-    expect(useComboStore.getState().document.cardCatalog[0].type).toBe('魔法');
+    await waitFor(() => {
+      expect(useComboStore.getState().cards[0].type).toBe('魔法');
+    });
   });
 
   it('キャンセルボタンで onClose が呼ばれる', () => {

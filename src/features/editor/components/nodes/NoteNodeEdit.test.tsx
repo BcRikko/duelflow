@@ -19,12 +19,28 @@ function renderNode(data = baseData, onSaved = vi.fn(), onDelete = vi.fn()) {
 describe('NoteNodeEdit', () => {
   beforeEach(() => {
     resetStore();
-    useComboStore.getState().addRoute();
-    useComboStore.getState().document.routes[0].steps.push({
-      id: 'step_1',
-      type: 'note',
-      description: 'テストメモ',
-      position: { x: 0, y: 0 },
+    const state = useComboStore.getState();
+    state.addRoute();
+    const currentDeck = state.currentDeck;
+    if (!currentDeck) throw new Error('currentDeck is null');
+    const route = currentDeck.routes[0];
+    useComboStore.setState({
+      currentDeck: {
+        ...currentDeck,
+        routes: [
+          {
+            ...route,
+            steps: [
+              {
+                id: 'step_1',
+                type: 'note',
+                description: 'テストメモ',
+                position: { x: 0, y: 0 },
+              },
+            ],
+          },
+        ],
+      },
     });
   });
 
@@ -38,8 +54,8 @@ describe('NoteNodeEdit', () => {
     const textarea = screen.getByDisplayValue('テストメモ');
     fireEvent.change(textarea, { target: { value: '更新後メモ' } });
     fireEvent.mouseDown(document.body);
-    const step = useComboStore.getState().document.routes[0].steps[0];
-    expect(step.description).toBe('更新後メモ');
+    const step = useComboStore.getState().currentDeck?.routes[0].steps[0];
+    expect(step?.description).toBe('更新後メモ');
   });
 
   it('Node内をクリックしても保存されない', () => {
@@ -47,8 +63,8 @@ describe('NoteNodeEdit', () => {
     const textarea = screen.getByDisplayValue('テストメモ');
     fireEvent.change(textarea, { target: { value: '更新後メモ' } });
     fireEvent.mouseDown(textarea);
-    const step = useComboStore.getState().document.routes[0].steps[0];
-    expect(step.description).toBe('テストメモ');
+    const step = useComboStore.getState().currentDeck?.routes[0].steps[0];
+    expect(step?.description).toBe('テストメモ');
   });
 
   it('削除ボタンで onDelete が呼ばれる', () => {

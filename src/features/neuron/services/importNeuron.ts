@@ -60,7 +60,7 @@ export function convertNeuronToComboDocument(data: NeuronDeckData): ComboDocumen
   addCards(deck.side, 'side');
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 0,
     deck: {
       id: deck.id || generateId('deck_'),
       name: deck.name,

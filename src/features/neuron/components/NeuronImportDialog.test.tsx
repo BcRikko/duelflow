@@ -3,16 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { ReactFlowProvider } from '@xyflow/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useComboStore } from '../../editor/store/comboStore';
+import { resetStore } from '../../../test/helpers';
 import { NeuronImportDialog } from './NeuronImportDialog';
-
-function createEmptyDoc() {
-  return {
-    schemaVersion: 1,
-    deck: { id: 'deck_1', name: 'Test', source: { type: 'neuron' as const, deckCode: '' }, cards: [] },
-    cardCatalog: [],
-    routes: [],
-  };
-}
 
 function renderDialog(onClose = vi.fn()) {
   return render(
@@ -23,16 +15,7 @@ function renderDialog(onClose = vi.fn()) {
 }
 
 beforeEach(() => {
-  useComboStore.setState({
-    document: createEmptyDoc(),
-    currentRouteId: null,
-    selection: null,
-    selectedCardIdForAdd: null,
-    addNodeForm: { type: 'action', actions: [], cardId: '', relatedCards: [], description: '' },
-    past: [],
-    future: [],
-    isNodeEditing: false,
-  });
+  resetStore();
   vi.clearAllMocks();
 });
 
@@ -49,7 +32,7 @@ describe('NeuronImportDialog', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('有効な JSON をインポートすると onClose が呼ばれる', () => {
+  it('有効な JSON をインポートすると onClose が呼ばれる', async () => {
     const onClose = vi.fn();
     renderDialog(onClose);
 
@@ -68,8 +51,10 @@ describe('NeuronImportDialog', () => {
     });
     fireEvent.click(screen.getByText('インポート'));
 
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(useComboStore.getState().document.cardCatalog).toHaveLength(1);
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(useComboStore.getState().cards).toHaveLength(1);
+    });
   });
 
   it('無効な JSON でアラートが表示される', () => {

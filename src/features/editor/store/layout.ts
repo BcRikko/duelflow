@@ -2,11 +2,11 @@ import type { Connection, Route, Step } from '../../combo/model/types';
 
 export const NODE_WIDTH = 200;
 export const NODE_HEIGHT = 80;
+export const NODE_HORIZONTAL_GAP = 40;
 const ROUTE_SPACING = 400;
 const ROUTE_OFFSET_Y = 60;
 
 const LAYER_HEIGHT = 120;
-const NODE_HORIZONTAL_GAP = 40;
 
 type LayoutResult = {
   steps: Step[];

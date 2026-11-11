@@ -1,8 +1,13 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useComboStore } from '../../editor/store/comboStore';
 import { resetStore } from '../../../test/helpers';
 import { CardList } from './CardList';
+
+async function addCard(name: string, type: string) {
+  const id = await useComboStore.getState().addCardToCatalog({ name, type, imageUrl: '' });
+  return id;
+}
 
 describe('CardList', () => {
   beforeEach(() => {
@@ -14,15 +19,15 @@ describe('CardList', () => {
     vi.unstubAllGlobals();
   });
 
-  it('登録済みカードを表示する', () => {
-    useComboStore.getState().addCardToCatalog({ name: 'カードA', type: 'モンスター', imageUrl: '' });
+  it('登録済みカードを表示する', async () => {
+    await addCard('カードA', 'モンスター');
     render(<CardList />);
     expect(screen.getByText('カードA')).not.toBeNull();
   });
 
-  it('検索でカードを絞り込む', () => {
-    useComboStore.getState().addCardToCatalog({ name: 'カードA', type: 'モンスター', imageUrl: '' });
-    useComboStore.getState().addCardToCatalog({ name: '魔法B', type: '魔法', imageUrl: '' });
+  it('検索でカードを絞り込む', async () => {
+    await addCard('カードA', 'モンスター');
+    await addCard('魔法B', '魔法');
     render(<CardList />);
 
     fireEvent.change(screen.getByPlaceholderText('カード名で検索'), {
@@ -33,22 +38,20 @@ describe('CardList', () => {
     expect(screen.getByText('魔法B')).not.toBeNull();
   });
 
-  it('カードをクリックして選択状態にする', () => {
-    const id = useComboStore.getState().addCardToCatalog({
-      name: 'カードA',
-      type: 'モンスター',
-      imageUrl: '',
-    });
+  it('カードをクリックして選択状態にする', async () => {
+    const id = await addCard('カードA', 'モンスター');
     render(<CardList />);
     fireEvent.click(screen.getByText('カードA'));
     expect(useComboStore.getState().selectedCardIdForAdd).toBe(id);
   });
 
-  it('削除ボタンでカードを削除する', () => {
-    useComboStore.getState().addCardToCatalog({ name: 'カードA', type: 'モンスター', imageUrl: '' });
+  it('削除ボタンでカードを削除する', async () => {
+    await addCard('カードA', 'モンスター');
     render(<CardList />);
     fireEvent.click(screen.getByText('×'));
-    expect(useComboStore.getState().document.cardCatalog).toHaveLength(0);
+    await waitFor(() => {
+      expect(useComboStore.getState().cards).toHaveLength(0);
+    });
   });
 
   it('カードがない場合は空のメッセージを表示する', () => {
@@ -62,8 +65,8 @@ describe('CardList', () => {
     expect(screen.getByText('カードを追加')).not.toBeNull();
   });
 
-  it('ドラッグ開始時にカードIDをデータ転送に設定する', () => {
-    useComboStore.getState().addCardToCatalog({ name: 'カードA', type: 'モンスター', imageUrl: '' });
+  it('ドラッグ開始時にカードIDをデータ転送に設定する', async () => {
+    await addCard('カードA', 'モンスター');
     render(<CardList />);
     const card = screen.getByText('カードA').closest('li');
     const dataTransfer = { setData: vi.fn(), effectAllowed: '' };

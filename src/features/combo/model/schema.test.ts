@@ -3,7 +3,7 @@ import { validateComboDocument } from './schema';
 
 function createValidDocument() {
   return {
-    schemaVersion: 1,
+    schemaVersion: 0,
     deck: {
       id: 'deck_1',
       name: 'テストデッキ',
@@ -44,7 +44,7 @@ describe('validateComboDocument', () => {
   });
 
   it('必須フィールドが欠けているとエラーになる', () => {
-    const doc = { schemaVersion: 2 };
+    const doc = { schemaVersion: 0 };
     expect(() => validateComboDocument(doc)).toThrow();
   });
 

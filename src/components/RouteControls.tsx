@@ -3,9 +3,12 @@ import { useComboStore } from '../features/editor/store/comboStore';
 import styles from './Header.module.css';
 
 export function RouteControls() {
-  const routes = useComboStore((state) => state.document.routes);
-  const deckName = useComboStore((state) => state.document.deck.name);
-  const currentRouteId = useComboStore((state) => state.currentRouteId);
+  const decks = useComboStore((state) => state.decks);
+  const currentDeck = useComboStore((state) => state.currentDeck);
+  const routes = currentDeck?.routes ?? [];
+  const currentRouteId = currentDeck?.currentRouteId ?? null;
+  const selectDeck = useComboStore((state) => state.selectDeck);
+  const createDeck = useComboStore((state) => state.createDeck);
   const addRoute = useComboStore((state) => state.addRoute);
   const selectRoute = useComboStore((state) => state.selectRoute);
   const deleteRoute = useComboStore((state) => state.deleteRoute);
@@ -17,14 +20,34 @@ export function RouteControls() {
   }, [currentRouteId, deleteRoute]);
 
   const handleAddRoute = useCallback(() => {
-    const defaultName = deckName || '新規ルート';
+    const defaultName = currentDeck?.name || '新規ルート';
     const name = window.prompt('ルート名を入力してください', defaultName);
     if (name == null) return;
     addRoute(name.trim() || defaultName);
-  }, [addRoute, deckName]);
+  }, [addRoute, currentDeck?.name]);
+
+  const handleCreateDeck = useCallback(() => {
+    const name = window.prompt('デッキ名を入力してください', '新規デッキ');
+    if (name == null) return;
+    createDeck(name.trim() || '新規デッキ');
+  }, [createDeck]);
 
   return (
     <div className={styles.group}>
+      <select
+        className={styles.routeSelect}
+        value={currentDeck?.deckId ?? ''}
+        onChange={(e) => selectDeck(e.target.value)}
+      >
+        {decks.map((deck) => (
+          <option key={deck.deckId} value={deck.deckId}>
+            {deck.name}
+          </option>
+        ))}
+      </select>
+      <button type="button" className={styles.button} onClick={handleCreateDeck}>
+        + デッキ
+      </button>
       <select
         className={styles.routeSelect}
         value={currentRouteId ?? ''}

@@ -1,25 +1,41 @@
 import { createDefaultNodeFormData } from '../features/editor/model/form';
 import { skipHistory, useComboStore } from '../features/editor/store/comboStore';
+import type { DeckRecord } from '../shared/cardDatabase';
 
-function createEmptyDocument() {
+function createInitialRoute(name = '新規ルート') {
   return {
-    schemaVersion: 2,
-    deck: {
-      id: 'deck_1',
-      name: 'Test Deck',
-      source: { type: 'neuron' as const, deckCode: '' },
-      cards: [],
+    id: 'route_1',
+    name,
+    description: '',
+    startingCardIds: [] as string[],
+    steps: [],
+    connections: [],
+    result: {
+      cardIds: [] as string[],
+      description: '',
     },
-    cardCatalog: [],
-    routes: [],
+  };
+}
+
+function createEmptyDeck(): DeckRecord {
+  const route = createInitialRoute('Test Deck');
+  return {
+    deckId: 'deck_1',
+    name: 'Test Deck',
+    source: { type: 'neuron', deckCode: '' },
+    cards: [],
+    routes: [route],
+    currentRouteId: route.id,
   };
 }
 
 export function resetStore() {
   skipHistory(() => {
     useComboStore.setState({
-      document: createEmptyDocument(),
-      currentRouteId: null,
+      initialized: true,
+      cards: [],
+      decks: [{ deckId: 'deck_1', name: 'Test Deck' }],
+      currentDeck: createEmptyDeck(),
       selection: null,
       selectedCardIdForAdd: null,
       addNodeForm: createDefaultNodeFormData(),

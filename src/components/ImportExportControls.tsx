@@ -1,23 +1,29 @@
 import { useRef, useState } from 'react';
-import { validateComboDocument } from '../features/combo/model/schema';
+import { validateDeckRecord } from '../features/combo/model/schema';
 import { NeuronImportDialog } from '../features/neuron/components/NeuronImportDialog';
 import { useComboStore } from '../features/editor/store/comboStore';
 import styles from './Header.module.css';
 
 export function ImportExportControls() {
-  const deck = useComboStore((state) => state.document.deck);
+  const deckName = useComboStore((state) => state.currentDeck?.name ?? '');
   const exportDocument = useComboStore((state) => state.exportDocument);
   const importDocument = useComboStore((state) => state.importDocument);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isNeuronDialogOpen, setIsNeuronDialogOpen] = useState(false);
 
   const handleExport = () => {
-    const doc = exportDocument();
-    const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
+    const deck = exportDocument();
+    if (!deck) return;
+
+    const payload = {
+      schemaVersion: 0,
+      ...deck,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${deck.name || 'deck'}.json`;
+    a.download = `${deckName || 'deck'}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -30,8 +36,18 @@ export function ImportExportControls() {
     reader.onload = () => {
       try {
         const json = JSON.parse(reader.result as string);
-        const doc = validateComboDocument(json);
-        importDocument(doc);
+        const record = validateDeckRecord(json);
+        void importDocument(
+          {
+            deckId: record.deckId,
+            name: record.name,
+            source: record.source,
+            cards: record.cards,
+            routes: record.routes,
+            currentRouteId: record.currentRouteId,
+          },
+          [],
+        );
       } catch (error) {
         alert(`読み込みに失敗しました: ${error instanceof Error ? error.message : String(error)}`);
       }

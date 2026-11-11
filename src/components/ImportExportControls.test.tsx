@@ -1,30 +1,28 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useComboStore } from '../features/editor/store/comboStore';
 import { resetStore } from '../test/helpers';
 import { ImportExportControls } from './ImportExportControls';
 
-function createValidDoc() {
+function createValidDeck() {
   return {
-    schemaVersion: 1,
-    deck: {
-      id: 'deck_1',
-      name: 'Imported',
-      source: { type: 'neuron' as const, deckCode: '' },
-      cards: [],
-    },
-    cardCatalog: [],
+    schemaVersion: 0,
+    deckId: 'deck_1',
+    name: 'Imported',
+    source: { type: 'neuron' as const, deckCode: '' },
+    cards: [],
     routes: [
       {
         id: 'route_1',
         name: 'Route',
         description: '',
-        startingCardIds: [],
+        startingCardIds: [] as string[],
         steps: [],
         connections: [],
-        result: { cardIds: [], description: '' },
+        result: { cardIds: [] as string[], description: '' },
       },
     ],
+    currentRouteId: 'route_1',
   };
 }
 
@@ -61,9 +59,9 @@ describe('ImportExportControls', () => {
     createObjectURLSpy.mockRestore();
   });
 
-  it('有効な JSON ファイルを読み込む', () => {
-    const doc = createValidDoc();
-    const file = new File([JSON.stringify(doc)], 'test.json', { type: 'application/json' });
+  it('有効な JSON ファイルを読み込む', async () => {
+    const deck = createValidDeck();
+    const file = new File([JSON.stringify(deck)], 'test.json', { type: 'application/json' });
 
     let readerMock = createReaderMock();
     vi.stubGlobal(
@@ -78,11 +76,13 @@ describe('ImportExportControls', () => {
     const input = screen.getByText('JSON読み込み').previousElementSibling as HTMLInputElement;
     fireEvent.change(input, { target: { files: [file] } });
     act(() => {
-      readerMock.result = JSON.stringify(doc);
-      readerMock.onload?.({ target: { result: JSON.stringify(doc) } });
+      readerMock.result = JSON.stringify(deck);
+      readerMock.onload?.({ target: { result: JSON.stringify(deck) } });
     });
 
-    expect(useComboStore.getState().document.deck.name).toBe('Imported');
+    await waitFor(() => {
+      expect(useComboStore.getState().currentDeck?.name).toBe('Imported');
+    });
     vi.unstubAllGlobals();
   });
 

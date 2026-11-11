@@ -23,7 +23,7 @@ function CardListImage({ card }: CardListImageProps) {
 }
 
 export function CardList() {
-  const cards = useComboStore((state) => state.document.cardCatalog);
+  const cards = useComboStore((state) => state.cards);
   const selectedCardId = useComboStore((state) => state.selectedCardIdForAdd);
   const selectCardForAdd = useComboStore((state) => state.selectCardForAdd);
   const removeCardFromCatalog = useComboStore((state) => state.removeCardFromCatalog);
@@ -79,7 +79,7 @@ export function CardList() {
               onClick={(e) => {
                 e.stopPropagation();
                 if (confirm(`「${card.name}」を削除しますか？`)) {
-                  removeCardFromCatalog(card.id);
+                  void removeCardFromCatalog(card.id);
                 }
               }}
             >

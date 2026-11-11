@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getCardImage, getCardImageByName, revokeCardImageUrl } from './imageStorage';
+import { getCard, getCardByName } from './cardDatabase';
 
 export function useCardImageUrl(
   cardId: string | undefined,
@@ -12,13 +12,16 @@ export function useCardImageUrl(
       return;
     }
 
+    const id = cardId;
     let objectUrl: string | null = null;
     let cancelled = false;
 
     async function loadImage() {
-      let blob = await getCardImage(cardId);
+      const record = await getCard(id);
+      let blob = record?.imageBlob ?? null;
       if (!blob && cardName) {
-        blob = await getCardImageByName(cardName);
+        const byName = await getCardByName(cardName);
+        blob = byName?.imageBlob ?? null;
       }
       if (cancelled || !blob || blob.size === 0) return;
       objectUrl = URL.createObjectURL(blob);
@@ -32,7 +35,7 @@ export function useCardImageUrl(
     return () => {
       cancelled = true;
       if (objectUrl) {
-        revokeCardImageUrl(objectUrl);
+        URL.revokeObjectURL(objectUrl);
       }
     };
   }, [cardId, cardName]);

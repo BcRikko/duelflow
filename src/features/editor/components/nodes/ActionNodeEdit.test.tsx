@@ -26,23 +26,39 @@ function renderNode(data = baseData, onSaved = vi.fn()) {
 }
 
 function setupRouteWithStep() {
-  useComboStore.getState().addRoute();
-  useComboStore.getState().document.routes[0].steps.push({
-    id: 'step_1',
-    type: 'action',
-    actions: ['normalSummon'],
-    cardId: 'card_1',
-    relatedCards: [],
-    description: '説明',
-    position: { x: 0, y: 0 },
+  const state = useComboStore.getState();
+  state.addRoute();
+  const currentDeck = state.currentDeck;
+  if (!currentDeck) throw new Error('currentDeck is null');
+  const route = currentDeck.routes[0];
+  useComboStore.setState({
+    currentDeck: {
+      ...currentDeck,
+      routes: [
+        {
+          ...route,
+          steps: [
+            {
+              id: 'step_1',
+              type: 'action',
+              actions: ['normalSummon'],
+              cardId: 'card_1',
+              relatedCards: [],
+              description: '説明',
+              position: { x: 0, y: 0 },
+            },
+          ],
+        },
+      ],
+    },
   });
 }
 
 describe('ActionNodeEdit', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     resetStore();
-    useComboStore.getState().addCardToCatalog({ name: 'カードA', imageUrl: '', type: 'モンスター' });
-    useComboStore.getState().addCardToCatalog({ name: 'カードB', imageUrl: '', type: '魔法' });
+    await useComboStore.getState().addCardToCatalog({ name: 'カードA', imageUrl: '', type: 'モンスター' });
+    await useComboStore.getState().addCardToCatalog({ name: 'カードB', imageUrl: '', type: '魔法' });
     setupRouteWithStep();
   });
 
@@ -58,8 +74,8 @@ describe('ActionNodeEdit', () => {
     await user.click(screen.getByLabelText('通常召喚'));
     await user.click(screen.getByLabelText('特殊召喚'));
     await user.click(document.body);
-    const step = useComboStore.getState().document.routes[0].steps[0];
-    expect(step.actions).toEqual(['specialSummon']);
+    const step = useComboStore.getState().currentDeck?.routes[0].steps[0];
+    expect(step?.actions).toEqual(['specialSummon']);
   });
 
   it('関連カードを追加できる', () => {
@@ -76,7 +92,7 @@ describe('ActionNodeEdit', () => {
     await user.type(textarea, '追加');
     await user.click(document.body);
 
-    const step = useComboStore.getState().document.routes[0].steps[0];
-    expect(step.description).toBe('説明追加');
+    const step = useComboStore.getState().currentDeck?.routes[0].steps[0];
+    expect(step?.description).toBe('説明追加');
   });
 });

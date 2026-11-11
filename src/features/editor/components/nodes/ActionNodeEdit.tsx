@@ -17,7 +17,7 @@ type Props = {
 export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected, onSaved }: Props) {
   const updateStep = useComboStore((state) => state.updateStep);
   const setNodeEditing = useComboStore((state) => state.setNodeEditing);
-  const cards = useComboStore((state) => state.document.cardCatalog);
+  const cards = useComboStore((state) => state.cards);
   const nodeRef = useRef<HTMLDivElement>(null);
 
   const [draft, setDraft] = useState({

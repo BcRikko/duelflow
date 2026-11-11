@@ -20,6 +20,7 @@ describe('NodeAddToolbar', () => {
   });
 
   it('ルート未選択時はアラートを表示する', () => {
+    useComboStore.setState({ currentDeck: null });
     render(<NodeAddToolbar />);
     fireEvent.click(screen.getByText('+ メモノード追加'));
     expect(window.alert).toHaveBeenCalledWith(
@@ -31,8 +32,10 @@ describe('NodeAddToolbar', () => {
     useComboStore.getState().addRoute();
     render(<NodeAddToolbar />);
     fireEvent.click(screen.getByText('+ メモノード追加'));
-    expect(useComboStore.getState().document.routes[0].steps).toHaveLength(1);
-    expect(useComboStore.getState().document.routes[0].steps[0].type).toBe('note');
-    expect(useComboStore.getState().document.routes[0].connections).toHaveLength(0);
+    const { currentDeck } = useComboStore.getState();
+    const route = currentDeck?.routes.find((r) => r.id === currentDeck.currentRouteId);
+    expect(route?.steps).toHaveLength(1);
+    expect(route?.steps[0].type).toBe('note');
+    expect(route?.connections).toHaveLength(0);
   });
 });

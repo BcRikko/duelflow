@@ -81,12 +81,22 @@ export function NeuronImportDialog({ onClose }: NeuronImportDialogProps) {
     }
   };
 
-  const handleJsonImport = () => {
+  const handleJsonImport = async () => {
     try {
       const json = JSON.parse(jsonText);
       const neuronData = parseNeuronDeck(json);
       const doc = convertNeuronToComboDocument(neuronData);
-      importDocument(doc);
+      await importDocument(
+        {
+          deckId: doc.deck.id,
+          name: doc.deck.name,
+          source: doc.deck.source,
+          cards: doc.deck.cards,
+          routes: doc.routes,
+          currentRouteId: doc.routes[0]?.id ?? null,
+        },
+        doc.cardCatalog,
+      );
       onClose();
     } catch (error) {
       alert(`インポートに失敗しました: ${error instanceof Error ? error.message : String(error)}`);

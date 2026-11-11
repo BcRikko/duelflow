@@ -93,6 +93,16 @@ export const comboDocumentSchema = z.object({
   routes: z.array(routeSchema),
 });
 
+export const deckRecordSchema = z.object({
+  schemaVersion: z.number(),
+  deckId: z.string(),
+  name: z.string(),
+  source: deckSourceSchema,
+  cards: z.array(deckEntrySchema),
+  routes: z.array(routeSchema),
+  currentRouteId: z.string().nullable(),
+});
+
 function collectIds<T extends { id: string }>(items: T[]): Set<string> {
   const ids = new Set<string>();
   for (const item of items) {
@@ -158,6 +168,32 @@ export function validateComboDocument(doc: unknown): z.infer<typeof comboDocumen
       if (!catalogIds.has(cardId)) {
         throw new Error(
           `ルート「${route.name}」の最終盤面でカタログに存在しないカード「${cardId}」を参照しています`,
+        );
+      }
+    }
+  }
+
+  return parsed;
+}
+
+export function validateDeckRecord(value: unknown): z.infer<typeof deckRecordSchema> {
+  const parsed = deckRecordSchema.parse(value);
+
+  collectIds(parsed.routes); // validate route id uniqueness
+
+  for (const route of parsed.routes) {
+    const stepIds = collectIds(route.steps);
+    collectIds(route.connections); // validate connection id uniqueness
+
+    for (const conn of route.connections) {
+      if (!stepIds.has(conn.source)) {
+        throw new Error(
+          `ルート「${route.name}」の接続線「${conn.id}」の接続元ノード「${conn.source}」が存在しません`,
+        );
+      }
+      if (!stepIds.has(conn.target)) {
+        throw new Error(
+          `ルート「${route.name}」の接続線「${conn.id}」の接続先ノード「${conn.target}」が存在しません`,
         );
       }
     }

@@ -27,11 +27,27 @@ const baseProps = {
 describe('EditableEdge', () => {
   beforeEach(() => {
     resetStore();
-    useComboStore.getState().addRoute();
-    useComboStore.getState().document.routes[0].connections.push({
-      id: 'edge_1',
-      source: 'step_1',
-      target: 'step_2',
+    const state = useComboStore.getState();
+    state.addRoute();
+    const currentDeck = state.currentDeck;
+    if (!currentDeck) throw new Error('currentDeck is null');
+    const route = currentDeck.routes[0];
+    useComboStore.setState({
+      currentDeck: {
+        ...currentDeck,
+        routes: [
+          {
+            ...route,
+            connections: [
+              {
+                id: 'edge_1',
+                source: 'step_1',
+                target: 'step_2',
+              },
+            ],
+          },
+        ],
+      },
     });
   });
 
@@ -51,7 +67,7 @@ describe('EditableEdge', () => {
       </ReactFlowProvider>,
     );
     fireEvent.click(screen.getByTitle('接続線を削除'));
-    expect(useComboStore.getState().document.routes[0].connections).toHaveLength(0);
+    expect(useComboStore.getState().currentDeck?.routes[0].connections).toHaveLength(0);
   });
 
   it('非選択時は削除ボタンを表示しない', () => {

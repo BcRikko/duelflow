@@ -40,7 +40,7 @@ describe('convertNeuronToComboDocument', () => {
   it('ComboDocument 形式に変換する', () => {
     const data = createNeuronData();
     const doc = convertNeuronToComboDocument(data);
-    expect(doc.schemaVersion).toBe(2);
+    expect(doc.schemaVersion).toBe(0);
     expect(doc.deck.name).toBe('ニューロンデッキ');
     expect(doc.deck.source.type).toBe('neuron');
     expect(doc.cardCatalog).toHaveLength(3);

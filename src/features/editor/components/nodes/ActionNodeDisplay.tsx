@@ -40,7 +40,7 @@ export const ActionNodeDisplay = memo(function ActionNodeDisplay({
   onEdit,
   onDelete,
 }: Props) {
-  const cards = useComboStore((state) => state.document.cardCatalog);
+  const cards = useComboStore((state) => state.cards);
 
   return (
     <div

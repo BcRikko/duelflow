@@ -4,7 +4,7 @@ import type { ComboDocument } from './types';
 describe('types', () => {
   it('型定義がエクスポートされている', () => {
     const doc: ComboDocument = {
-      schemaVersion: 2,
+      schemaVersion: 0,
       deck: {
         id: 'deck_1',
         name: 'test',
@@ -14,6 +14,6 @@ describe('types', () => {
       cardCatalog: [],
       routes: [],
     };
-    expect(doc.schemaVersion).toBe(2);
+    expect(doc.schemaVersion).toBe(0);
   });
 });

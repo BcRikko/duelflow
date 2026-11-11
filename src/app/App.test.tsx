@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetStore } from '../test/helpers';
 import App from './App';
@@ -18,10 +18,11 @@ describe('App', () => {
     vi.unstubAllGlobals();
   });
 
-  it('アプリ全体がレンダリングされる', () => {
+  it('アプリ全体がレンダリングされる', async () => {
     render(<App />);
-    expect(screen.getByPlaceholderText('デッキ名')).not.toBeNull();
-    expect(screen.getByText('カード一覧')).not.toBeNull();
-    expect(screen.getByText('ルートがありません')).not.toBeNull();
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('デッキ名')).not.toBeNull();
+      expect(screen.getByText('カード一覧')).not.toBeNull();
+    });
   });
 });

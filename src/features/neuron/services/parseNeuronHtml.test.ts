@@ -115,7 +115,7 @@ describe('buildComboDocumentFromParsedNeuron', () => {
       side: [],
     });
 
-    expect(doc.schemaVersion).toBe(2);
+    expect(doc.schemaVersion).toBe(0);
     expect(doc.deck.name).toBe('テストデッキ');
     expect(doc.cardCatalog).toHaveLength(1);
     expect(doc.cardCatalog[0]).toEqual({

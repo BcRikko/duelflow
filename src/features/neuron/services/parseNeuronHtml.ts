@@ -174,7 +174,7 @@ export function buildComboDocumentFromParsedNeuron(data: ParsedNeuronDeck): Comb
   addCards(data.side, 'side');
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 0,
     deck: {
       id: generateId('deck_'),
       name: data.name,
