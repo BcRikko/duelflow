@@ -33,14 +33,14 @@ function openDatabase(): Promise<IDBDatabase> {
     request.onupgradeneeded = () => {
       const db = request.result;
 
-      for (const name of Array.from(db.objectStoreNames)) {
-        db.deleteObjectStore(name);
+      if (!db.objectStoreNames.contains(CARD_STORE)) {
+        const cardStore = db.createObjectStore(CARD_STORE, { keyPath: 'cardId' });
+        cardStore.createIndex(NAME_INDEX, 'name', { unique: false });
       }
 
-      const cardStore = db.createObjectStore(CARD_STORE, { keyPath: 'cardId' });
-      cardStore.createIndex(NAME_INDEX, 'name', { unique: false });
-
-      db.createObjectStore(DECK_STORE, { keyPath: 'deckId' });
+      if (!db.objectStoreNames.contains(DECK_STORE)) {
+        db.createObjectStore(DECK_STORE, { keyPath: 'deckId' });
+      }
     };
 
     request.onsuccess = () => resolve(request.result);

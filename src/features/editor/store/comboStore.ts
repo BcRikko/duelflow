@@ -460,8 +460,52 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
   removeCardFromCatalog: async (id) => {
     await deleteCard(id);
 
+    const deckRecords = await getAllDecks();
+    const updatedDecks: DeckRecord[] = [];
+
+    for (const deck of deckRecords) {
+      const hasCardInEntries = deck.cards.some((entry) => entry.cardId === id);
+      const hasCardInRoute = deck.route.steps.some(
+        (step) =>
+          step.type === 'action' &&
+          (step.cardId === id || step.relatedCards.some((related) => related.cardId === id)),
+      );
+
+      if (!hasCardInEntries && !hasCardInRoute) continue;
+
+      const updatedDeck: DeckRecord = {
+        ...deck,
+        cards: hasCardInEntries ? deck.cards.filter((entry) => entry.cardId !== id) : deck.cards,
+        route: hasCardInRoute
+          ? {
+              ...deck.route,
+              steps: deck.route.steps.map((step) => {
+                if (step.type !== 'action') return step;
+                return {
+                  ...step,
+                  relatedCards: step.relatedCards.filter((related) => related.cardId !== id),
+                };
+              }),
+            }
+          : deck.route,
+      };
+
+      await saveDeck(updatedDeck);
+      updatedDecks.push(updatedDeck);
+    }
+
+    const updatedDeckMap = new Map(updatedDecks.map((deck) => [deck.deckId, deck]));
+
     set((state) => ({
       cards: state.cards.filter((card) => card.id !== id),
+      decks: state.decks.map((deck) => {
+        const updated = updatedDeckMap.get(deck.deckId);
+        return updated ? { ...deck, name: updated.name } : deck;
+      }),
+      currentDeck:
+        state.currentDeck && updatedDeckMap.has(state.currentDeck.deckId)
+          ? updatedDeckMap.get(state.currentDeck.deckId)!
+          : state.currentDeck,
     }));
   },
 
@@ -679,8 +723,14 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       let newConnections = route.connections.filter(
         (c) => c.source !== stepId && c.target !== stepId,
       );
+      const existingConnections = new Set(
+        newConnections.map((c) => `${c.source}->${c.target}`),
+      );
       for (const inc of incoming) {
         for (const out of outgoing) {
+          const key = `${inc.source}->${out.target}`;
+          if (existingConnections.has(key)) continue;
+          existingConnections.add(key);
           newConnections.push({
             id: generateId('conn_'),
             source: inc.source,
@@ -809,9 +859,18 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       for (const card of newCards) {
         cardMap.set(card.id, card);
       }
+
+      const existingIndex = state.decks.findIndex((d) => d.deckId === deck.deckId);
+      const decks =
+        existingIndex >= 0
+          ? state.decks.map((d, index) =>
+              index === existingIndex ? { deckId: deck.deckId, name: deck.name } : d,
+            )
+          : [...state.decks, { deckId: deck.deckId, name: deck.name }];
+
       return {
         cards: Array.from(cardMap.values()),
-        decks: [...state.decks, { deckId: deck.deckId, name: deck.name }],
+        decks,
         currentDeck: deck,
         selection: null,
       };
@@ -995,8 +1054,9 @@ function recordHistory(previousDeck: DeckRecord) {
 useComboStore.subscribe((state, prevState) => {
   if (state.currentDeck !== prevState.currentDeck) {
     if (state.currentDeck && !isRestoringHistory) {
-      saveDeck(state.currentDeck).catch(() => {
-        // IndexedDB 保存エラーは無視
+      saveDeck(state.currentDeck).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('Failed to save deck to IndexedDB:', error);
       });
     }
     if (isRecordingHistory && prevState.currentDeck) {

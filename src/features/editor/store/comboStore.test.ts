@@ -49,6 +49,24 @@ describe('カードカタログ', () => {
     await useComboStore.getState().removeCardFromCatalog(id);
     expect(useComboStore.getState().cards).toHaveLength(0);
   });
+
+  it('カードを削除するとデッキおよびルート内の参照も削除される', async () => {
+    const cardId = await addTestCard();
+    const relatedCardId = await addTestCard('Related');
+
+    const stepId = useComboStore.getState().addStepToEnd({
+      type: 'action',
+      actions: ['normalSummon'],
+      cardId,
+      relatedCards: [{ cardId: relatedCardId, role: 'cost' }],
+    });
+
+    await useComboStore.getState().removeCardFromCatalog(relatedCardId);
+
+    const step = getCurrentRoute().steps.find((s) => s.id === stepId);
+    expect(step?.type === 'action' ? step.relatedCards : []).toHaveLength(0);
+    expect(useComboStore.getState().currentDeck?.cards.some((c) => c.cardId === relatedCardId)).toBe(false);
+  });
 });
 
 describe('ルート管理', () => {
@@ -226,6 +244,33 @@ describe('ステップ管理', () => {
     useComboStore.getState().deleteStep(stepId);
     expect(getCurrentRoute().steps).toHaveLength(0);
   });
+
+  it('ステップ削除時に既存接続と重複する接続は作られない', async () => {
+    const cardId = await addTestCard();
+    const stepId1 = useComboStore.getState().addStepToEnd({
+      type: 'action',
+      actions: ['normalSummon'],
+      cardId,
+      relatedCards: [],
+    });
+    const stepId2 = useComboStore.getState().addStepToEnd({
+      type: 'action',
+      actions: ['draw'],
+      cardId,
+      relatedCards: [],
+    });
+    const stepId3 = useComboStore.getState().addStepAfter(stepId1, {
+      type: 'action',
+      actions: ['effect'],
+      cardId,
+      relatedCards: [],
+    });
+
+    useComboStore.getState().deleteStep(stepId3);
+
+    const route = getCurrentRoute();
+    expect(route.connections.filter((c) => c.source === stepId1 && c.target === stepId2)).toHaveLength(1);
+  });
 });
 
 describe('接続線管理', () => {
@@ -354,6 +399,31 @@ describe('ドキュメント入出力', () => {
     };
     await useComboStore.getState().importDocument(deck);
     expect(useComboStore.getState().currentDeck?.route.id).toBe('route_imported');
+  });
+
+  it('同じdeckIdのドキュメントを再度インポートすると上書きされ、デッキ一覧が重複しない', async () => {
+    const deck = {
+      deckId: 'deck_1',
+      name: 'Imported',
+      source: { type: 'neuron' as const, deckCode: '' },
+      cards: [],
+      route: {
+        id: 'route_imported',
+        name: 'Imported',
+        description: '',
+        startingCardIds: [] as string[],
+        steps: [],
+        connections: [],
+        result: { cardIds: [] as string[], description: '' },
+      },
+    };
+    await useComboStore.getState().importDocument(deck);
+    await useComboStore.getState().importDocument({ ...deck, name: 'Imported Again' });
+
+    const state = useComboStore.getState();
+    expect(state.decks).toHaveLength(1);
+    expect(state.decks[0].name).toBe('Imported Again');
+    expect(state.currentDeck?.name).toBe('Imported Again');
   });
 
   it('保存HTMLからインポートすると画像をIndexedDBに保存する', async () => {
