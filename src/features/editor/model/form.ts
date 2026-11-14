@@ -18,9 +18,18 @@ export type NodeFormData =
       description: string;
     };
 
+const NOTE_TOOL_ID = '__note__';
+
 export function createDefaultNodeFormData(
   defaultCardId?: string | null,
 ): NodeFormData {
+  if (defaultCardId === NOTE_TOOL_ID) {
+    return {
+      type: 'note',
+      description: '',
+    };
+  }
+
   return {
     type: 'action',
     actions: actionDefinitions[0]?.id ? [actionDefinitions[0].id] : [],

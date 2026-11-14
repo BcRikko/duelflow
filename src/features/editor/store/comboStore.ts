@@ -14,6 +14,7 @@ import {
   type DeckRecord,
 } from '../../../shared/cardDatabase';
 import { clearUiState, loadUiState, saveUiState } from '../../../shared/uiStorage';
+import { migrateStepCardRole } from '../../combo/model/schema';
 import type {
   ActionStep,
   Card,
@@ -71,12 +72,10 @@ type ComboActions = {
   selectDeck: (deckId: string) => Promise<void>;
   deleteDeck: (deckId: string) => Promise<void>;
   renameCurrentDeck: (name: string) => void;
+  renameDeck: (deckId: string, name: string) => void;
 
   // Route management
-  addRoute: (name?: string) => string;
-  selectRoute: (id: string) => void;
-  deleteRoute: (id: string) => void;
-  updateRoute: (id: string, updates: Partial<Omit<Route, 'id' | 'steps' | 'connections'>>) => void;
+  updateRoute: (updates: Partial<Omit<Route, 'id' | 'steps' | 'connections'>>) => void;
 
   // Card catalog
   addCardToCatalog: (card: Omit<Card, 'id'>, imageFile?: File) => Promise<string>;
@@ -118,6 +117,7 @@ type ComboActions = {
   canRedo: () => boolean;
 
   // Reset
+  clearRoute: () => void;
   clearAll: () => Promise<void>;
 };
 
@@ -137,14 +137,12 @@ function createInitialRoute(name = '新規ルート'): Route {
 }
 
 function createEmptyDeck(name = '新規デッキ'): DeckRecord {
-  const initialRoute = createInitialRoute(name);
   return {
     deckId: generateId('deck_'),
     name,
     source: { type: 'neuron', deckCode: '' },
     cards: [],
-    routes: [initialRoute],
-    currentRouteId: initialRoute.id,
+    route: createInitialRoute(name),
   };
 }
 
@@ -153,27 +151,28 @@ function cardRecordToCard(record: CardRecord): Card {
     id: record.cardId,
     name: record.name,
     type: record.type,
+    description: record.description,
     imageUrl: '',
   };
 }
 
-export function findRouteByStepId(routes: Route[], stepId: string): Route | undefined {
-  return routes.find((route) => route.steps.some((step) => step.id === stepId));
+function toRouteArray(route: Route | Route[]): Route[] {
+  return Array.isArray(route) ? route : [route];
 }
 
-export function findRouteByConnectionId(routes: Route[], connectionId: string): Route | undefined {
-  return routes.find((route) => route.connections.some((conn) => conn.id === connectionId));
+export function findRouteByStepId(route: Route | Route[], stepId: string): Route | undefined {
+  return toRouteArray(route).find((r) => r.steps.some((step) => step.id === stepId));
 }
 
-function updateDeckRoute(
-  deck: DeckRecord,
-  routeId: string,
-  updater: (route: Route) => Route,
-): DeckRecord {
-  return {
-    ...deck,
-    routes: deck.routes.map((route) => (route.id === routeId ? updater(route) : route)),
-  };
+export function findRouteByConnectionId(
+  route: Route | Route[],
+  connectionId: string,
+): Route | undefined {
+  return toRouteArray(route).find((r) => r.connections.some((conn) => conn.id === connectionId));
+}
+
+function updateCurrentRoute(deck: DeckRecord, updater: (route: Route) => Route): DeckRecord {
+  return { ...deck, route: updater(deck.route) };
 }
 
 function updateRouteStep(route: Route, stepId: string, updater: (step: Step) => Step): Route {
@@ -195,16 +194,9 @@ function updateRouteConnection(
 }
 
 export function relayoutDeck(deck: DeckRecord): DeckRecord {
-  const updatedRoutes: Route[] = [];
-
-  for (let i = 0; i < deck.routes.length; i++) {
-    const route = deck.routes[i];
-    const offset = getRouteOffset(i);
-    const layout = calculateLayout(route, offset.x, offset.y);
-    updatedRoutes.push({ ...route, steps: layout.steps });
-  }
-
-  return { ...deck, routes: updatedRoutes };
+  const offset = getRouteOffset(0);
+  const layout = calculateLayout(deck.route, offset.x, offset.y);
+  return { ...deck, route: { ...deck.route, steps: layout.steps } };
 }
 
 function applyStepUpdates(
@@ -251,6 +243,22 @@ function addStepToRoute(route: Route, newStep: Step): Route {
   };
 }
 
+function migrateRouteRoles(route: Route): Route {
+  return {
+    ...route,
+    steps: route.steps.map((step) => {
+      if (step.type !== 'action') return step;
+      return {
+        ...step,
+        relatedCards: step.relatedCards.map((related) => ({
+          ...related,
+          role: migrateStepCardRole(related.role),
+        })),
+      };
+    }),
+  };
+}
+
 export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
   initialized: false,
   cards: [],
@@ -267,21 +275,20 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     const [cardRecords, deckRecords] = await Promise.all([getAllCards(), getAllDecks()]);
     const uiState = loadUiState();
 
-    let decks = deckRecords.map((deck) => ({ deckId: deck.deckId, name: deck.name }));
+    const migratedDeckRecords = deckRecords.map((deck) => ({
+      ...deck,
+      route: migrateRouteRoles(deck.route),
+    }));
+
+    let decks = migratedDeckRecords.map((deck) => ({ deckId: deck.deckId, name: deck.name }));
     let currentDeck: DeckRecord | null = null;
 
     if (uiState.selectedDeckId) {
-      currentDeck = deckRecords.find((d) => d.deckId === uiState.selectedDeckId) ?? null;
+      currentDeck = migratedDeckRecords.find((d) => d.deckId === uiState.selectedDeckId) ?? null;
     }
-    if (!currentDeck && deckRecords.length > 0) {
-      currentDeck = deckRecords[0];
+    if (!currentDeck && migratedDeckRecords.length > 0) {
+      currentDeck = migratedDeckRecords[0];
     }
-    if (!currentDeck) {
-      currentDeck = createEmptyDeck();
-      await saveDeck(currentDeck);
-      decks = [{ deckId: currentDeck.deckId, name: currentDeck.name }];
-    }
-
     skipHistory(() =>
       set({
         initialized: true,
@@ -357,22 +364,16 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
 
     const state = get();
     const decks = state.decks.filter((d) => d.deckId !== deckId);
-    let nextDeck: DeckRecord | null = null;
+    let nextDeck: DeckRecord | null = state.currentDeck;
 
     if (state.currentDeck?.deckId === deckId) {
-      if (decks.length > 0) {
-        nextDeck = await getDeck(decks[0]!.deckId);
-      }
-      if (!nextDeck) {
-        nextDeck = createEmptyDeck();
-        await saveDeck(nextDeck);
-        decks.push({ deckId: nextDeck.deckId, name: nextDeck.name });
-      }
-    } else {
-      nextDeck = state.currentDeck;
+      nextDeck = decks.length > 0 ? await getDeck(decks[0]!.deckId) : null;
     }
 
     set({ decks, currentDeck: nextDeck, selection: null });
+    if (!nextDeck) {
+      saveUiState({ selectedDeckId: null });
+    }
   },
 
   renameCurrentDeck: (name) => {
@@ -389,68 +390,57 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     }));
   },
 
-  addRoute: (name) => {
-    const { currentDeck } = get();
-    if (!currentDeck) return '';
+  renameDeck: (deckId, name) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
 
-    const routeName = name?.trim() || currentDeck.name || '新規ルート';
-    const newRoute = createInitialRoute(routeName);
-    set((state) => ({
-      currentDeck: state.currentDeck
-        ? {
-            ...state.currentDeck,
-            routes: [...state.currentDeck.routes, newRoute],
-            currentRouteId: newRoute.id,
-          }
-        : null,
-      selection: null,
-    }));
-    return newRoute.id;
-  },
+    const state = get();
+    const target = state.decks.find((d) => d.deckId === deckId);
+    if (!target || target.name === trimmed) return;
 
-  selectRoute: (id) => {
-    const { currentDeck } = get();
-    if (!currentDeck || currentDeck.currentRouteId === id) return;
     set({
-      currentDeck: { ...currentDeck, currentRouteId: id },
-      selection: null,
+      decks: state.decks.map((d) => (d.deckId === deckId ? { ...d, name: trimmed } : d)),
+      currentDeck:
+        state.currentDeck?.deckId === deckId
+          ? { ...state.currentDeck, name: trimmed }
+          : state.currentDeck,
     });
-  },
 
-  deleteRoute: (id) => {
-    const { currentDeck } = get();
-    if (!currentDeck) return;
-
-    let routes = currentDeck.routes.filter((r) => r.id !== id);
-    if (routes.length === 0) {
-      routes = [createInitialRoute(currentDeck.name || '新規ルート')];
+    if (state.currentDeck?.deckId !== deckId) {
+      void getDeck(deckId).then((record) => {
+        if (record) {
+          void saveDeck({ ...record, name: trimmed });
+        }
+      });
     }
-    const relayouted = relayoutDeck({ ...currentDeck, routes });
-
-    set({
-      currentDeck: {
-        ...relayouted,
-        currentRouteId: relayouted.routes[0]?.id ?? null,
-      },
-      selection: null,
-    });
   },
 
-  updateRoute: (id, updates) => {
+  updateRoute: (updates) => {
     const { currentDeck } = get();
     if (!currentDeck) return;
     set({
-      currentDeck: updateDeckRoute(currentDeck, id, (route) => ({ ...route, ...updates })),
+      currentDeck: updateCurrentRoute(currentDeck, (route) => ({ ...route, ...updates })),
     });
   },
 
   addCardToCatalog: async (card, imageFile) => {
     const id = generateId('card_');
-    await saveCard(id, card.name, card.type, imageFile);
+    await saveCard(id, card.name, card.type, { file: imageFile, description: card.description });
 
-    set((state) => ({
-      cards: [...state.cards, { ...card, id }],
-    }));
+    set((state) => {
+      const nextCards = [...state.cards, { ...card, id }];
+      const currentDeck = state.currentDeck;
+      if (!currentDeck || currentDeck.cards.some((entry) => entry.cardId === id)) {
+        return { cards: nextCards };
+      }
+      return {
+        cards: nextCards,
+        currentDeck: {
+          ...currentDeck,
+          cards: [...currentDeck.cards, { cardId: id, quantity: 1, section: 'main' }],
+        },
+      };
+    });
     return id;
   },
 
@@ -460,7 +450,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     if (!current) return;
 
     const next = { ...current, ...updates };
-    await saveCard(id, next.name, next.type, imageFile);
+    await saveCard(id, next.name, next.type, { file: imageFile, description: next.description });
 
     set((state) => ({
       cards: state.cards.map((card) => (card.id === id ? next : card)),
@@ -478,15 +468,12 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
   addStepToEnd: (step) => {
     const { currentDeck } = get();
     if (!currentDeck) return '';
-    const currentRouteId = currentDeck.currentRouteId;
-    if (!currentRouteId) return '';
 
     const newStepId = generateId('step_');
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = deck.routes.find((r) => r.id === currentRouteId);
-      if (!route) return {};
+      const route = deck.route;
 
       const outgoing = new Set(route.connections.map((c) => c.source));
       const terminals = route.steps.filter((s) => !outgoing.has(s.id));
@@ -502,7 +489,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       const updatedRoute = addStepToRoute(route, newStep);
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, () => updatedRoute),
+        currentDeck: updateCurrentRoute(deck, () => updatedRoute),
         selection: { type: 'step', id: newStepId },
       };
     });
@@ -512,22 +499,18 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
   addStepAtPosition: (step, position) => {
     const { currentDeck } = get();
     if (!currentDeck) return '';
-    const currentRouteId = currentDeck.currentRouteId;
-    if (!currentRouteId) return '';
 
     const newStepId = generateId('step_');
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = deck.routes.find((r) => r.id === currentRouteId);
-      if (!route) return {};
 
       const newStep = { ...step, id: newStepId, position } as Step;
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, (r) => ({
-          ...r,
-          steps: [...r.steps, newStep],
+        currentDeck: updateCurrentRoute(deck, (route) => ({
+          ...route,
+          steps: [...route.steps, newStep],
         })),
         selection: { type: 'step', id: newStepId },
       };
@@ -540,8 +523,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByStepId(deck.routes, afterStepId);
-      if (!route) return {};
+      const route = deck.route;
 
       const originalTargets = route.connections
         .filter((c) => c.source === afterStepId)
@@ -573,7 +555,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       const updatedRoute = { ...route, steps: [...route.steps, newStep], connections: newConnections };
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, () => updatedRoute),
+        currentDeck: updateCurrentRoute(deck, () => updatedRoute),
         selection: { type: 'step', id: newStepId },
       };
     });
@@ -585,8 +567,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByStepId(deck.routes, sourceStepId);
-      if (!route) return {};
+      const route = deck.route;
 
       const sourceStep = route.steps.find((s) => s.id === sourceStepId);
       if (!sourceStep) return {};
@@ -618,7 +599,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       };
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, () => updatedRoute),
+        currentDeck: updateCurrentRoute(deck, () => updatedRoute),
         selection: { type: 'connection', id: newConnection.id },
       };
     });
@@ -630,8 +611,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByConnectionId(deck.routes, connectionId);
-      if (!route) return {};
+      const route = deck.route;
 
       const connection = route.connections.find((c) => c.id === connectionId);
       if (!connection) return {};
@@ -654,7 +634,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       const updatedRoute = { ...route, steps: [...route.steps, newStep], connections: newConnections };
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, () => updatedRoute),
+        currentDeck: updateCurrentRoute(deck, () => updatedRoute),
         selection: { type: 'step', id: newStepId },
       };
     });
@@ -665,12 +645,10 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByStepId(deck.routes, stepId);
-      if (!route) return {};
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, (r) =>
-          updateRouteStep(r, stepId, (step) => applyStepUpdates(step, updates)),
+        currentDeck: updateCurrentRoute(deck, (route) =>
+          updateRouteStep(route, stepId, (step) => applyStepUpdates(step, updates)),
         ),
       };
     });
@@ -680,12 +658,10 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByStepId(deck.routes, stepId);
-      if (!route) return {};
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, (r) =>
-          updateRouteStep(r, stepId, (step) => ({ ...step, position })),
+        currentDeck: updateCurrentRoute(deck, (route) =>
+          updateRouteStep(route, stepId, (step) => ({ ...step, position })),
         ),
       };
     });
@@ -695,8 +671,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByStepId(deck.routes, stepId);
-      if (!route) return {};
+      const route = deck.route;
 
       const incoming = route.connections.filter((c) => c.target === stepId);
       const outgoing = route.connections.filter((c) => c.source === stepId);
@@ -717,7 +692,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       const newSteps = route.steps.filter((s) => s.id !== stepId);
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, (r) => ({
+        currentDeck: updateCurrentRoute(deck, (r) => ({
           ...r,
           steps: newSteps,
           connections: newConnections,
@@ -738,9 +713,11 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByStepId(deck.routes, connection.source);
-      if (!route) return {};
-      if (!route.steps.some((s) => s.id === connection.target)) return {};
+      const route = deck.route;
+
+      if (!route.steps.some((s) => s.id === connection.source) || !route.steps.some((s) => s.id === connection.target)) {
+        return {};
+      }
 
       const exists = route.connections.some(
         (c) => c.source === connection.source && c.target === connection.target,
@@ -749,7 +726,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
 
       added = true;
       return {
-        currentDeck: updateDeckRoute(deck, route.id, (r) => ({
+        currentDeck: updateCurrentRoute(deck, (r) => ({
           ...r,
           connections: [...r.connections, { ...connection, id }],
         })),
@@ -762,12 +739,10 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByConnectionId(deck.routes, id);
-      if (!route) return {};
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, (r) =>
-          updateRouteConnection(r, id, (conn) => ({ ...conn, ...updates })),
+        currentDeck: updateCurrentRoute(deck, (route) =>
+          updateRouteConnection(route, id, (conn) => ({ ...conn, ...updates })),
         ),
       };
     });
@@ -779,8 +754,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByConnectionId(deck.routes, id);
-      if (!route) return {};
+      const route = deck.route;
 
       if (!route.steps.some((s) => s.id === source) || !route.steps.some((s) => s.id === target)) {
         return {};
@@ -792,8 +766,8 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       if (exists) return {};
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, (r) =>
-          updateRouteConnection(r, id, (conn) => ({ ...conn, source, target })),
+        currentDeck: updateCurrentRoute(deck, (route) =>
+          updateRouteConnection(route, id, (conn) => ({ ...conn, source, target })),
         ),
       };
     });
@@ -803,13 +777,12 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = findRouteByConnectionId(deck.routes, id);
-      if (!route) return {};
+      const route = deck.route;
 
       const updatedRoute = { ...route, connections: route.connections.filter((c) => c.id !== id) };
 
       return {
-        currentDeck: updateDeckRoute(deck, route.id, () => updatedRoute),
+        currentDeck: updateCurrentRoute(deck, () => updatedRoute),
         selection:
           state.selection?.type === 'connection' && state.selection.id === id
             ? null
@@ -824,19 +797,25 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
     for (const card of cardCatalog) {
       const existing = await getCard(card.id);
       if (!existing) {
-        await saveCard(card.id, card.name, card.type);
+        await saveCard(card.id, card.name, card.type, { description: card.description });
         newCards.push({ ...card, imageUrl: card.imageUrl || '' });
       }
     }
 
     await saveDeck(deck);
 
-    set((state) => ({
-      cards: [...state.cards, ...newCards],
-      decks: [...state.decks, { deckId: deck.deckId, name: deck.name }],
-      currentDeck: deck,
-      selection: null,
-    }));
+    set((state) => {
+      const cardMap = new Map(state.cards.map((card) => [card.id, card]));
+      for (const card of newCards) {
+        cardMap.set(card.id, card);
+      }
+      return {
+        cards: Array.from(cardMap.values()),
+        decks: [...state.decks, { deckId: deck.deckId, name: deck.name }],
+        currentDeck: deck,
+        selection: null,
+      };
+    });
     saveUiState({ selectedDeckId: deck.deckId });
   },
 
@@ -877,22 +856,30 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
 
     const savePromises: Promise<void>[] = [];
     for (const card of doc.cardCatalog) {
-      const imageSrc = data.main
+      const parsedCard = data.main
         .concat(data.ex)
         .concat(data.side)
-        .find((c) => c.id === card.id)?.imageSrc;
-      if (!imageSrc) continue;
+        .find((c) => c.id === card.id);
+      const imageSrc = parsedCard?.imageSrc;
 
-      const basename = extractBasename(imageSrc);
-      if (!basename) continue;
-
-      const file = findImageFile(basename, imageFileMap);
-      if (file) {
-        savePromises.push(saveCard(card.id, card.name, card.type, file));
-      } else {
-        // eslint-disable-next-line no-console
-        console.warn(`[importNeuronHtml] 画像ファイルが見つかりません: ${basename}`);
+      let file: File | undefined;
+      if (imageSrc) {
+        const basename = extractBasename(imageSrc);
+        if (basename) {
+          file = findImageFile(basename, imageFileMap);
+          if (!file) {
+            // eslint-disable-next-line no-console
+            console.warn(`[importNeuronHtml] 画像ファイルが見つかりません: ${basename}`);
+          }
+        }
       }
+
+      savePromises.push(
+        saveCard(card.id, card.name, card.type, {
+          file,
+          description: card.description,
+        }),
+      );
     }
 
     await Promise.all(savePromises);
@@ -902,21 +889,25 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       name: doc.deck.name,
       source: doc.deck.source,
       cards: doc.deck.cards,
-      routes: [],
-      currentRouteId: null,
+      route: createInitialRoute(doc.deck.name),
     };
-    const initialRoute = createInitialRoute(deck.name);
-    deck.routes = [initialRoute];
-    deck.currentRouteId = initialRoute.id;
 
     await saveDeck(deck);
 
-    set((state) => ({
-      cards: [...state.cards, ...doc.cardCatalog.map((c) => ({ ...c, imageUrl: '' }))],
-      decks: [...state.decks, { deckId: deck.deckId, name: deck.name }],
-      currentDeck: deck,
-      selection: null,
-    }));
+    skipHistory(() => {
+      set((state) => {
+        const cardMap = new Map(state.cards.map((card) => [card.id, card]));
+        for (const card of doc.cardCatalog) {
+          cardMap.set(card.id, { ...card, imageUrl: '' });
+        }
+        return {
+          cards: Array.from(cardMap.values()),
+          decks: [...state.decks, { deckId: deck.deckId, name: deck.name }],
+          currentDeck: deck,
+          selection: null,
+        };
+      });
+    });
     saveUiState({ selectedDeckId: deck.deckId });
   },
 
@@ -951,18 +942,24 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
   canUndo: () => get().past.length > 0,
   canRedo: () => get().future.length > 0,
 
+  clearRoute: () => {
+    const { currentDeck } = get();
+    if (!currentDeck) return;
+    set({
+      currentDeck: { ...currentDeck, route: createInitialRoute(currentDeck.name) },
+      selection: null,
+    });
+  },
+
   clearAll: async () => {
     await clearAll();
     clearUiState();
 
-    const deck = createEmptyDeck();
-    await saveDeck(deck);
-
     skipHistory(() =>
       set({
         cards: [],
-        decks: [{ deckId: deck.deckId, name: deck.name }],
-        currentDeck: deck,
+        decks: [],
+        currentDeck: null,
         selection: null,
         selectedCardIdForAdd: null,
         addNodeForm: createDefaultNodeFormData(),
@@ -971,7 +968,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
         isNodeEditing: false,
       }),
     );
-    saveUiState({ selectedDeckId: deck.deckId });
+    saveUiState({ selectedDeckId: null });
   },
 }));
 

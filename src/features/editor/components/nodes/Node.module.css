@@ -12,6 +12,7 @@
   padding: 8px 12px 8px 8px;
   transition: border-color 0.15s, box-shadow 0.15s;
   cursor: move;
+  overflow: visible;
 }
 
 .node.selected {
@@ -20,6 +21,7 @@
 }
 
 .node.action {
+  width: 240px;
   background: #fff;
 }
 
@@ -76,7 +78,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #999;
 }
@@ -90,24 +92,24 @@
 }
 
 .actionLabel {
-  font-size: 11px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #1976d2;
 }
 
 .cardName {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1.4;
   word-break: break-word;
 }
 
 .description {
-  font-size: 11px;
+  font-size: 0.75rem;
   color: #666;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .relatedCardsList {
@@ -115,7 +117,7 @@
   flex-wrap: wrap;
   gap: 2px 8px;
   width: 100%;
-  font-size: 10px;
+  font-size: 0.75rem;
   color: #555;
   line-height: 1.3;
 }
@@ -147,7 +149,7 @@
   border: 1px solid #d32f2f;
   background: #fff;
   color: #d32f2f;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -176,20 +178,93 @@
 }
 
 .editSelect,
-.editTextarea,
 .editRoleSelect,
 .editCardSelect {
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: #333;
+  background: #fff;
+}
+
+.editSelect:focus,
+.editRoleSelect:focus,
+.editCardSelect:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+@supports (appearance: base-select) {
+  .editSelect,
+  .editRoleSelect,
+  .editCardSelect {
+    appearance: base-select;
+    padding: 5px 26px 5px 8px;
+    border-color: #aaa;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+
+  .editSelect::picker(select),
+  .editRoleSelect::picker(select),
+  .editCardSelect::picker(select) {
+    appearance: base-select;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px 0;
+    margin-top: 4px;
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .editSelect option,
+  .editRoleSelect option,
+  .editCardSelect option {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    color: #333;
+  }
+
+  .editSelect option:hover,
+  .editRoleSelect option:hover,
+  .editCardSelect option:hover {
+    background: #e3f2fd;
+  }
+
+  .editSelect option:checked,
+  .editRoleSelect option:checked,
+  .editCardSelect option:checked {
+    background: #1976d2;
+    color: #fff;
+  }
+
+  .editSelect option:checked::checkmark,
+  .editRoleSelect option:checked::checkmark,
+  .editCardSelect option:checked::checkmark {
+    color: #fff;
+  }
+}
+
+.editSelect {
+  width: 100%;
+}
+
+.editTextarea {
   width: 100%;
   padding: 4px 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 0.8125rem;
   font-family: inherit;
   background: #fff;
-}
-
-.editTextarea {
-  resize: vertical;
+  resize: none;
+  overflow: hidden;
+  min-height: 2.5em;
 }
 
 .relatedCardsCompact {
@@ -206,7 +281,7 @@
 }
 
 .editRoleSelect {
-  width: 56px;
+  width: 80px;
   flex-shrink: 0;
 }
 
@@ -222,7 +297,7 @@
   border-radius: 4px;
   background: #fff;
   color: #333;
-  font-size: 11px;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
@@ -236,8 +311,8 @@
 }
 
 .handle {
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
   background: #999;
   border: 2px solid #fff;
 }
@@ -252,7 +327,7 @@
 }
 
 .noteLabel {
-  font-size: 10px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #f57f17;
   display: block;
@@ -260,7 +335,7 @@
 }
 
 .noteText {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #333;
   margin: 0;
   word-break: break-word;
@@ -276,7 +351,7 @@
 }
 
 .actionFieldset legend {
-  font-size: 11px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #555;
   padding: 0 4px;
@@ -294,12 +369,84 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 0.75rem;
   color: #333;
   cursor: pointer;
 }
 
 .actionCheckboxLabel input {
   margin: 0;
+}
+
+.cardTooltipPortal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+.cardTooltipContent {
+  width: 280px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  padding: 14px;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.tooltipHeader {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tooltipSpecsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  margin-bottom: 4px;
+}
+
+.tooltipSpecsTable th,
+.tooltipSpecsTable td {
+  padding: 3px 0;
+  vertical-align: top;
+  text-align: left;
+}
+
+.tooltipSpecsTable th {
+  width: 34%;
+  color: #666;
+  font-weight: 600;
+  padding-right: 8px;
+  white-space: nowrap;
+}
+
+.tooltipSpecsTable td {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.tooltipDivider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 10px 0;
+}
+
+.tooltipEffect {
+  font-size: 0.8125rem;
+  color: #444;
+  line-height: 1.7;
+  white-space: pre-line;
 }
 

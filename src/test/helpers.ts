@@ -18,14 +18,12 @@ function createInitialRoute(name = '新規ルート') {
 }
 
 function createEmptyDeck(): DeckRecord {
-  const route = createInitialRoute('Test Deck');
   return {
     deckId: 'deck_1',
     name: 'Test Deck',
     source: { type: 'neuron', deckCode: '' },
     cards: [],
-    routes: [route],
-    currentRouteId: route.id,
+    route: createInitialRoute('Test Deck'),
   };
 }
 

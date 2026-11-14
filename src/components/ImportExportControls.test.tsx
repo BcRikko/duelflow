@@ -11,18 +11,15 @@ function createValidDeck() {
     name: 'Imported',
     source: { type: 'neuron' as const, deckCode: '' },
     cards: [],
-    routes: [
-      {
-        id: 'route_1',
-        name: 'Route',
-        description: '',
-        startingCardIds: [] as string[],
-        steps: [],
-        connections: [],
-        result: { cardIds: [] as string[], description: '' },
-      },
-    ],
-    currentRouteId: 'route_1',
+    route: {
+      id: 'route_1',
+      name: 'Route',
+      description: '',
+      startingCardIds: [] as string[],
+      steps: [],
+      connections: [],
+      result: { cardIds: [] as string[], description: '' },
+    },
   };
 }
 
@@ -46,15 +43,14 @@ describe('ImportExportControls', () => {
 
   it('各ボタンを表示する', () => {
     render(<ImportExportControls />);
-    expect(screen.getByText('ニューロン')).not.toBeNull();
-    expect(screen.getByText('JSON読み込み')).not.toBeNull();
-    expect(screen.getByText('JSON書き出し')).not.toBeNull();
+    expect(screen.getByTitle('展開ファイルの読み込み')).not.toBeNull();
+    expect(screen.getByTitle('展開ファイルの保存')).not.toBeNull();
   });
 
-  it('JSON書き出しボタンでダウンロード用リンクを生成する', () => {
+  it('展開ファイルの保存ボタンでダウンロード用リンクを生成する', () => {
     const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test');
     render(<ImportExportControls />);
-    fireEvent.click(screen.getByText('JSON書き出し'));
+    fireEvent.click(screen.getByTitle('展開ファイルの保存'));
     expect(createObjectURLSpy).toHaveBeenCalled();
     createObjectURLSpy.mockRestore();
   });
@@ -73,7 +69,7 @@ describe('ImportExportControls', () => {
     );
 
     render(<ImportExportControls />);
-    const input = screen.getByText('JSON読み込み').previousElementSibling as HTMLInputElement;
+    const input = screen.getByTitle('展開ファイルの読み込み').previousElementSibling as HTMLInputElement;
     fireEvent.change(input, { target: { files: [file] } });
     act(() => {
       readerMock.result = JSON.stringify(deck);
@@ -99,7 +95,7 @@ describe('ImportExportControls', () => {
     );
 
     render(<ImportExportControls />);
-    const input = screen.getByText('JSON読み込み').previousElementSibling as HTMLInputElement;
+    const input = screen.getByTitle('展開ファイルの読み込み').previousElementSibling as HTMLInputElement;
     fireEvent.change(input, { target: { files: [file] } });
     act(() => {
       readerMock.result = 'not json';
@@ -108,11 +104,5 @@ describe('ImportExportControls', () => {
 
     expect(window.alert).toHaveBeenCalled();
     vi.unstubAllGlobals();
-  });
-
-  it('ニューロンボタンでダイアログを開く', () => {
-    render(<ImportExportControls />);
-    fireEvent.click(screen.getByText('ニューロン'));
-    expect(screen.getByText('ニューロンからインポート')).not.toBeNull();
   });
 });

@@ -8,6 +8,7 @@ export type ActionNodeData = {
   cardId: string;
   cardType: CardTypeCategory;
   description?: string;
+  cardDescription?: string;
   relatedCards: StepCard[];
 };
 

@@ -40,6 +40,31 @@ function createMinimalHtml(): string {
   </table>
   <img class="card_image_monster_0_1" alt="テストモンスター" src="./test_files/get_image(0).action.ダウンロード">
   <img class="card_image_spell_0_1" alt="テスト魔法" src="./test_files/get_image(1).action.ダウンロード">
+  <div class="t_row c_normal">
+    <dl>
+      <dd class="box_card_name flex_1 top_set">
+        <span class="card_name">テストモンスター</span>
+      </dd>
+      <dd class="box_card_spec flex_1">
+        <span class="box_card_attribute">
+          <img src="./attribute_icon_dark.png" alt="DARK">
+          <span>DARK</span>
+        </span>
+        <span class="box_card_level_rank level">
+          <span>Level 4</span>
+        </span>
+        <span class="card_info_species_and_other_item"><span>[ Spellcaster / Effect ]</span></span>
+        <div class="atkdef">
+          <span class="atk_power"><span>ATK 1500</span></span>
+          <span class="def_power"><span>DEF 1000</span></span>
+        </div>
+      </dd>
+      <dd class="box_card_text c_text flex_1 text_linebreak">ドローした時に発動できる。</dd>
+    </dl>
+    <div class="remove_btn top_set">
+      <input type="hidden" class="cid" value="12345">
+    </div>
+  </div>
 </body>
 </html>
   `;
@@ -86,6 +111,7 @@ describe('parseNeuronHtml', () => {
       quantity: 1,
       type: '効果モンスター',
       imageSrc: './test_files/get_image(0).action.ダウンロード',
+      description: 'DARK / Level 4 / [Spellcaster / Effect] / ATK 1500 / DEF 1000\n\nドローした時に発動できる。',
     });
     expect(result.main[1]).toEqual({
       id: 'neuron_67890',
@@ -93,6 +119,7 @@ describe('parseNeuronHtml', () => {
       quantity: 1,
       type: '魔法',
       imageSrc: './test_files/get_image(1).action.ダウンロード',
+      description: '',
     });
   });
 
@@ -109,7 +136,14 @@ describe('buildComboDocumentFromParsedNeuron', () => {
     const doc = buildComboDocumentFromParsedNeuron({
       name: 'テストデッキ',
       main: [
-        { id: 'neuron_12345', name: 'テストモンスター', quantity: 2, type: '効果モンスター', imageSrc: null },
+        {
+          id: 'neuron_12345',
+          name: 'テストモンスター',
+          quantity: 2,
+          type: '効果モンスター',
+          imageSrc: null,
+          description: 'DARK / Level 4 / ATK 1500 / DEF 1000\n\nテスト効果',
+        },
       ],
       ex: [],
       side: [],
@@ -123,6 +157,7 @@ describe('buildComboDocumentFromParsedNeuron', () => {
       name: 'テストモンスター',
       imageUrl: '',
       type: '効果モンスター',
+      description: 'DARK / Level 4 / ATK 1500 / DEF 1000\n\nテスト効果',
     });
     expect(doc.deck.cards).toEqual([{ cardId: 'neuron_12345', quantity: 2, section: 'main' }]);
   });

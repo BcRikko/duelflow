@@ -42,29 +42,25 @@ describe('ActionNode', () => {
 
   it('削除ボタンでステップを削除する', () => {
     const state = useComboStore.getState();
-    state.addRoute();
     const currentDeck = state.currentDeck;
     if (!currentDeck) throw new Error('currentDeck is null');
-    const route = currentDeck.routes[0];
     useComboStore.setState({
       currentDeck: {
         ...currentDeck,
-        routes: [
-          {
-            ...route,
-            steps: [
-              {
-                id: 'step_1',
-                type: 'action',
-                actions: ['normalSummon'],
-                cardId: 'card_1',
-                relatedCards: [],
-                description: '',
-                position: { x: 0, y: 0 },
-              },
-            ],
-          },
-        ],
+        route: {
+          ...currentDeck.route,
+          steps: [
+            {
+              id: 'step_1',
+              type: 'action',
+              actions: ['normalSummon'],
+              cardId: 'card_1',
+              relatedCards: [],
+              description: '',
+              position: { x: 0, y: 0 },
+            },
+          ],
+        },
       },
     });
     render(
@@ -73,6 +69,6 @@ describe('ActionNode', () => {
       </ReactFlowProvider>,
     );
     fireEvent.click(screen.getByTitle('削除'));
-    expect(useComboStore.getState().currentDeck?.routes[0].steps).toHaveLength(0);
+    expect(useComboStore.getState().currentDeck?.route.steps).toHaveLength(0);
   });
 });

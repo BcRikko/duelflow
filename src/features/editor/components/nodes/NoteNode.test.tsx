@@ -33,27 +33,22 @@ describe('NoteNode', () => {
   });
 
   it('削除ボタンでステップを削除する', () => {
-    const state = useComboStore.getState();
-    state.addRoute();
-    const currentDeck = state.currentDeck;
+    const currentDeck = useComboStore.getState().currentDeck;
     if (!currentDeck) throw new Error('currentDeck is null');
-    const route = currentDeck.routes[0];
     useComboStore.setState({
       currentDeck: {
         ...currentDeck,
-        routes: [
-          {
-            ...route,
-            steps: [
-              {
-                id: 'step_1',
-                type: 'note',
-                description: 'テストメモ',
-                position: { x: 0, y: 0 },
-              },
-            ],
-          },
-        ],
+        route: {
+          ...currentDeck.route,
+          steps: [
+            {
+              id: 'step_1',
+              type: 'note',
+              description: 'テストメモ',
+              position: { x: 0, y: 0 },
+            },
+          ],
+        },
       },
     });
     render(
@@ -62,6 +57,6 @@ describe('NoteNode', () => {
       </ReactFlowProvider>,
     );
     fireEvent.click(screen.getByTitle('削除'));
-    expect(useComboStore.getState().currentDeck?.routes[0].steps).toHaveLength(0);
+    expect(useComboStore.getState().currentDeck?.route.steps).toHaveLength(0);
   });
 });

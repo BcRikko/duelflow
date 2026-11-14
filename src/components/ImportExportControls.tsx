@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { validateDeckRecord } from '../features/combo/model/schema';
-import { NeuronImportDialog } from '../features/neuron/components/NeuronImportDialog';
 import { useComboStore } from '../features/editor/store/comboStore';
+import { ExportIcon, ImportIcon } from './icons';
 import styles from './Header.module.css';
 
 export function ImportExportControls() {
@@ -9,7 +9,6 @@ export function ImportExportControls() {
   const exportDocument = useComboStore((state) => state.exportDocument);
   const importDocument = useComboStore((state) => state.importDocument);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isNeuronDialogOpen, setIsNeuronDialogOpen] = useState(false);
 
   const handleExport = () => {
     const deck = exportDocument();
@@ -43,8 +42,7 @@ export function ImportExportControls() {
             name: record.name,
             source: record.source,
             cards: record.cards,
-            routes: record.routes,
-            currentRouteId: record.currentRouteId,
+            route: record.route,
           },
           [],
         );
@@ -61,13 +59,6 @@ export function ImportExportControls() {
 
   return (
     <div className={styles.group}>
-      <button
-        type="button"
-        className={styles.button}
-        onClick={() => setIsNeuronDialogOpen(true)}
-      >
-        ニューロン
-      </button>
       <input
         ref={fileInputRef}
         type="file"
@@ -77,17 +68,24 @@ export function ImportExportControls() {
       />
       <button
         type="button"
-        className={styles.button}
+        className={styles.iconButton}
         onClick={() => fileInputRef.current?.click()}
+        title="展開ファイルの読み込み"
+        aria-label="展開ファイルの読み込み"
       >
-        JSON読み込み
+        <ImportIcon />
+        <span className={styles.label}>展開ファイルの読み込み</span>
       </button>
-      <button type="button" className={styles.button} onClick={handleExport}>
-        JSON書き出し
+      <button
+        type="button"
+        className={styles.iconButton}
+        onClick={handleExport}
+        title="展開ファイルの保存"
+        aria-label="展開ファイルの保存"
+      >
+        <ExportIcon />
+        <span className={styles.label}>展開ファイルの保存</span>
       </button>
-      {isNeuronDialogOpen ? (
-        <NeuronImportDialog onClose={() => setIsNeuronDialogOpen(false)} />
-      ) : null}
     </div>
   );
 }

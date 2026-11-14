@@ -8,6 +8,7 @@ import styles from './App.module.css';
 function App() {
   const initialize = useComboStore((state) => state.initialize);
   const initialized = useComboStore((state) => state.initialized);
+  const currentDeckId = useComboStore((state) => state.currentDeck?.deckId ?? null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,7 +40,7 @@ function App() {
       <Header />
       <main className={styles.main}>
         <aside className={styles.sidebar}>
-          <CardList />
+          <CardList key={currentDeckId ?? 'none'} />
         </aside>
         <section className={styles.canvas}>
           <ComboCanvas />

@@ -10,6 +10,7 @@ export type CardRecord = {
   cardId: string;
   name: string;
   type: string;
+  description?: string;
   imageType: string;
   imageBlob: Blob | null;
 };
@@ -21,9 +22,8 @@ export type DeckRecord = {
     type: 'neuron';
     deckCode: string;
   };
-  cards: DeckEntry[];
-  routes: Route[];
-  currentRouteId: string | null;
+  cards: DeckEntry[]; 
+  route: Route;
 };
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -145,17 +145,24 @@ function normalizeName(name: string): string {
   return name.normalize('NFC').trim();
 }
 
-export async function saveCard(cardId: string, name: string, type: string, file?: File): Promise<void> {
-  let imageType = '';
-  let imageBlob: Blob | null = null;
+export async function saveCard(
+  cardId: string,
+  name: string,
+  type: string,
+  options?: { file?: File; description?: string },
+): Promise<void> {
+  const existing = await getCard(cardId);
 
-  if (file) {
-    imageType = await detectImageType(file);
+  let imageType = existing?.imageType ?? '';
+  let imageBlob: Blob | null = existing?.imageBlob ?? null;
+
+  if (options?.file) {
+    imageType = await detectImageType(options.file);
     if (imageType === 'application/octet-stream') {
-      imageType = file.type || 'application/octet-stream';
+      imageType = options.file.type || 'application/octet-stream';
     }
     if (imageType !== 'application/octet-stream') {
-      const buffer = await readFileAsArrayBuffer(file);
+      const buffer = await readFileAsArrayBuffer(options.file);
       const ext = getImageExtension(imageType);
       imageBlob = new File([buffer], `${cardId}.${ext}`, { type: imageType });
     }
@@ -165,6 +172,7 @@ export async function saveCard(cardId: string, name: string, type: string, file?
     cardId,
     name: normalizeName(name),
     type,
+    description: options?.description ?? existing?.description ?? '',
     imageType,
     imageBlob,
   };

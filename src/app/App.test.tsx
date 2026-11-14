@@ -21,7 +21,7 @@ describe('App', () => {
   it('アプリ全体がレンダリングされる', async () => {
     render(<App />);
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('デッキ名')).not.toBeNull();
+      expect(screen.getByText('Test Deck')).not.toBeNull();
       expect(screen.getByText('カード一覧')).not.toBeNull();
     });
   });

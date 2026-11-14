@@ -1,0 +1,149 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.dialog {
+  background: #fff;
+  border-radius: 8px;
+  width: 720px;
+  max-width: 92%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.dialog h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #1976d2;
+  color: #111;
+}
+
+.dialog h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 28px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #111;
+}
+
+.dialog h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 20px 0 8px;
+  color: #222;
+}
+
+.dialog p {
+  font-size: 1rem;
+  margin: 0 0 14px;
+}
+
+.dialog ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0 0 16px;
+}
+
+.dialog ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0 0 16px;
+}
+
+.dialog li {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.dialog li:last-child {
+  margin-bottom: 0;
+}
+
+.dialog strong {
+  font-weight: 600;
+  color: #111;
+}
+
+.dialog code {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8125rem;
+  background: #f3f3f3;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #222;
+}
+
+.dialog pre {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 14px;
+  overflow-x: auto;
+  margin: 0 0 16px;
+}
+
+.dialog pre code {
+  display: block;
+  background: transparent;
+  padding: 0;
+  white-space: pre;
+}
+
+.dialog table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+  margin: 0 0 16px;
+}
+
+.dialog th,
+.dialog td {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  vertical-align: top;
+}
+
+.dialog th {
+  background: #f8f8f8;
+  font-weight: 600;
+  text-align: left;
+}
+
+.dialog td code {
+  white-space: nowrap;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.close {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.close:hover {
+  background: #f0f0f0;
+}

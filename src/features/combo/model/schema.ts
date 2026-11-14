@@ -6,7 +6,30 @@ const positionSchema = z.object({
   y: z.number(),
 });
 
-export const stepCardRoleSchema = z.enum(['source', 'target', 'material', 'result']);
+export const stepCardRoleSchema = z.enum(['cost', 'target', 'material', 'specialSummon']);
+
+export const stepCardRoleLabels: Record<z.infer<typeof stepCardRoleSchema>, string> = {
+  cost: 'コスト',
+  target: '対象',
+  material: '素材',
+  specialSummon: '特殊召喚',
+};
+
+export function migrateStepCardRole(role: string): z.infer<typeof stepCardRoleSchema> {
+  switch (role) {
+    case 'source':
+      return 'cost';
+    case 'result':
+      return 'specialSummon';
+    case 'target':
+    case 'material':
+    case 'cost':
+    case 'specialSummon':
+      return role;
+    default:
+      return 'cost';
+  }
+}
 
 export const stepCardSchema = z.object({
   cardId: z.string(),
@@ -84,6 +107,7 @@ export const cardSchema = z.object({
       message: 'imageUrlは空欄、またはhttp/httpsから始まるURLである必要があります',
     }),
   type: z.string(),
+  description: z.string().optional(),
 });
 
 export const comboDocumentSchema = z.object({
@@ -99,8 +123,7 @@ export const deckRecordSchema = z.object({
   name: z.string(),
   source: deckSourceSchema,
   cards: z.array(deckEntrySchema),
-  routes: z.array(routeSchema),
-  currentRouteId: z.string().nullable(),
+  route: routeSchema,
 });
 
 function collectIds<T extends { id: string }>(items: T[]): Set<string> {
@@ -176,26 +199,42 @@ export function validateComboDocument(doc: unknown): z.infer<typeof comboDocumen
   return parsed;
 }
 
+function migrateDeckRecordRoles(value: unknown): unknown {
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(migrateDeckRecordRoles);
+  }
+  const obj: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(value)) {
+    if (key === 'role' && typeof val === 'string') {
+      obj[key] = migrateStepCardRole(val);
+    } else {
+      obj[key] = migrateDeckRecordRoles(val);
+    }
+  }
+  return obj;
+}
+
 export function validateDeckRecord(value: unknown): z.infer<typeof deckRecordSchema> {
-  const parsed = deckRecordSchema.parse(value);
+  const migrated = migrateDeckRecordRoles(value);
+  const parsed = deckRecordSchema.parse(migrated);
 
-  collectIds(parsed.routes); // validate route id uniqueness
+  const route = parsed.route;
+  const stepIds = collectIds(route.steps);
+  collectIds(route.connections); // validate connection id uniqueness
 
-  for (const route of parsed.routes) {
-    const stepIds = collectIds(route.steps);
-    collectIds(route.connections); // validate connection id uniqueness
-
-    for (const conn of route.connections) {
-      if (!stepIds.has(conn.source)) {
-        throw new Error(
-          `ルート「${route.name}」の接続線「${conn.id}」の接続元ノード「${conn.source}」が存在しません`,
-        );
-      }
-      if (!stepIds.has(conn.target)) {
-        throw new Error(
-          `ルート「${route.name}」の接続線「${conn.id}」の接続先ノード「${conn.target}」が存在しません`,
-        );
-      }
+  for (const conn of route.connections) {
+    if (!stepIds.has(conn.source)) {
+      throw new Error(
+        `ルート「${route.name}」の接続線「${conn.id}」の接続元ノード「${conn.source}」が存在しません`,
+      );
+    }
+    if (!stepIds.has(conn.target)) {
+      throw new Error(
+        `ルート「${route.name}」の接続線「${conn.id}」の接続先ノード「${conn.target}」が存在しません`,
+      );
     }
   }
 

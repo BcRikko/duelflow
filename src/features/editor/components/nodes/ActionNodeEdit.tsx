@@ -1,5 +1,6 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { actionDefinitions } from '../../../../shared/actionDefinitions';
+import { stepCardRoleLabels } from '../../../combo/model/schema';
 import type { StepCardRole } from '../../../combo/model/types';
 import { useComboStore } from '../../store/comboStore';
 import { NodeHandles } from './NodeHandles';
@@ -19,6 +20,7 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
   const setNodeEditing = useComboStore((state) => state.setNodeEditing);
   const cards = useComboStore((state) => state.cards);
   const nodeRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [draft, setDraft] = useState({
     actions: data.actions,
@@ -41,6 +43,13 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
     setNodeEditing(true);
     return () => setNodeEditing(false);
   }, [setNodeEditing]);
+
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [draft.description]);
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
@@ -74,7 +83,7 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
       ...prev,
       relatedCards: [
         ...prev.relatedCards,
-        { cardId: cards[0]?.id ?? '', role: 'source' as StepCardRole },
+        { cardId: cards[0]?.id ?? '', role: 'cost' as StepCardRole },
       ],
     }));
   }, [cards]);
@@ -138,11 +147,12 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
           ))}
         </select>
         <textarea
+          ref={textareaRef}
           className={styles.editTextarea}
           value={draft.description}
           onChange={(e) => updateDescription(e.target.value)}
           placeholder="説明・メモ"
-          rows={2}
+          rows={1}
         />
         <div className={styles.relatedCardsCompact}>
           {draft.relatedCards.map((related, index) => (
@@ -152,10 +162,11 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
                 value={related.role}
                 onChange={(e) => updateRelatedCard(index, undefined, e.target.value as StepCardRole)}
               >
-                <option value="source">起点</option>
-                <option value="target">対象</option>
-                <option value="material">素材</option>
-                <option value="result">結果</option>
+                {Object.entries(stepCardRoleLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
               <select
                 className={styles.editCardSelect}

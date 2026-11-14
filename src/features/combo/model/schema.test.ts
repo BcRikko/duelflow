@@ -86,7 +86,7 @@ describe('validateComboDocument', () => {
 
   it('存在しない関連カードを検出する', () => {
     const doc = createValidDocument();
-    doc.routes[0].steps[0].relatedCards.push({ cardId: 'card_missing', role: 'source' });
+    doc.routes[0].steps[0].relatedCards.push({ cardId: 'card_missing', role: 'cost' });
     expect(() => validateComboDocument(doc)).toThrow('関連カード');
   });
 

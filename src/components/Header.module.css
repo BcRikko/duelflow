@@ -3,58 +3,241 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 16px;
+  padding: 10px 16px;
   background: #fff;
   border-bottom: 1px solid #ddd;
   flex-shrink: 0;
 }
 
-.group {
+.group,
+.leftGroup,
+.centerGroup,
+.rightGroup {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.deckName {
-  font-size: 16px;
-  font-weight: 600;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: 6px 8px;
-  background: transparent;
-  min-width: 200px;
+.leftGroup {
+  flex: 1;
 }
 
-.deckName:hover,
-.deckName:focus {
-  border-color: #ccc;
-  background: #fff;
-  outline: none;
+.centerGroup {
+  justify-content: center;
+  flex: 1;
 }
 
-.routeSelect {
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 150px;
+.rightGroup {
+  justify-content: flex-end;
+  flex: 1;
 }
 
-.button {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
+.logo {
+  width: 32px;
+  height: 32px;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #333;
   white-space: nowrap;
 }
 
-.button:hover:not(:disabled) {
+.deckControl {
+  position: relative;
+}
+
+.deckButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.deckButton:hover {
+  background: #f7f7f7;
+}
+
+.deckName {
+  font-size: 1rem;
+  font-weight: 600;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.deckPanel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  max-width: 90vw;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  padding: 10px;
+}
+
+.addDeckButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px dashed #863bff;
+  border-radius: 6px;
+  background: #faf8ff;
+  color: #4a0dad;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.addDeckButton:hover {
+  background: #ede6ff;
+}
+
+.addDeckIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.divider {
+  height: 1px;
+  margin: 10px 0;
+  background: #ddd;
+}
+
+.deckList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.deckRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.deckRow:hover {
+  background: #f7f7f7;
+}
+
+.deckRowActive {
+  background: #ede6ff;
+  border-color: #c5b0ff;
+}
+
+.deckRowName {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 0.875rem;
+  color: #333;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deckRowActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.deckRowAction {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 0.75rem;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.deckRowAction:hover {
   background: #f0f0f0;
 }
 
-.button:disabled {
-  opacity: 0.5;
+.dangerAction {
+  color: #d32f2f;
+  border-color: #d32f2f;
+}
+
+.dangerAction:hover {
+  background: #ffebee;
+}
+
+.iconButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 64px;
+  padding: 6px 4px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.iconButton:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.iconButton:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
+}
+
+.iconButton svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: center;
+  word-break: keep-all;
 }
 
 .danger {
@@ -62,10 +245,21 @@
   border-color: #d32f2f;
 }
 
-.danger:hover {
+.danger:hover:not(:disabled) {
   background: #ffebee;
 }
 
 .hidden {
   display: none;
+}
+
+@media (max-width: 768px) {
+  .rightGroup .label {
+    display: none;
+  }
+
+  .rightGroup .iconButton {
+    min-width: auto;
+    padding: 6px;
+  }
 }

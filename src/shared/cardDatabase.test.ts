@@ -32,7 +32,7 @@ describe('cardDatabase', () => {
 
   it('画像付きカードを保存する', async () => {
     const file = createJpegFile('image.jpg');
-    await saveCard('card_1', 'カードA', 'モンスター', file);
+    await saveCard('card_1', 'カードA', 'モンスター', { file });
     const record = await getCard('card_1');
     expect(record?.imageBlob).not.toBeNull();
     expect(record?.imageType).toBe('image/jpeg');
@@ -42,6 +42,12 @@ describe('cardDatabase', () => {
     await saveCard('card_1', 'カードA', 'モンスター');
     const record = await getCardByName('カードA');
     expect(record?.cardId).toBe('card_1');
+  });
+
+  it('カードの説明文を保存する', async () => {
+    await saveCard('card_1', 'カードA', 'モンスター', { description: '効果モンスター\n\nドローした時に発動。' });
+    const record = await getCard('card_1');
+    expect(record?.description).toBe('効果モンスター\n\nドローした時に発動。');
   });
 
   it('カードを削除する', async () => {
@@ -56,8 +62,15 @@ describe('cardDatabase', () => {
       name: 'Test Deck',
       source: { type: 'neuron' as const, deckCode: '' },
       cards: [],
-      routes: [],
-      currentRouteId: null,
+      route: {
+        id: 'route_1',
+        name: 'Route',
+        description: '',
+        startingCardIds: [] as string[],
+        steps: [],
+        connections: [],
+        result: { cardIds: [] as string[], description: '' },
+      },
     };
     await saveDeck(deck);
     const saved = await getDeck('deck_1');
@@ -71,8 +84,15 @@ describe('cardDatabase', () => {
       name: 'Test',
       source: { type: 'neuron', deckCode: '' },
       cards: [],
-      routes: [],
-      currentRouteId: null,
+      route: {
+        id: 'route_1',
+        name: 'Route',
+        description: '',
+        startingCardIds: [] as string[],
+        steps: [],
+        connections: [],
+        result: { cardIds: [] as string[], description: '' },
+      },
     });
     await clearAll();
     expect(await getAllCards()).toHaveLength(0);

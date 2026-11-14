@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { performRedo, performUndo, useComboStore } from '../features/editor/store/comboStore';
+import { RedoIcon, UndoIcon } from './icons';
 import styles from './Header.module.css';
 
 export function HistoryControls() {
@@ -32,21 +33,25 @@ export function HistoryControls() {
     <div className={styles.group}>
       <button
         type="button"
-        className={styles.button}
+        className={styles.iconButton}
         onClick={performUndo}
         disabled={!canUndo}
         title="元に戻す (Ctrl+Z / Cmd+Z)"
+        aria-label="元に戻す"
       >
-        ↩ 元に戻す
+        <UndoIcon />
+        <span className={styles.label}>元に戻す</span>
       </button>
       <button
         type="button"
-        className={styles.button}
+        className={styles.iconButton}
         onClick={performRedo}
         disabled={!canRedo}
         title="やり直し (Ctrl+Y / Cmd+Shift+Z)"
+        aria-label="やり直し"
       >
-        ↪ やり直し
+        <RedoIcon />
+        <span className={styles.label}>やり直し</span>
       </button>
     </div>
   );

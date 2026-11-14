@@ -10,9 +10,12 @@ describe('Header', () => {
 
   it('ヘッダーがレンダリングされる', () => {
     render(<Header />);
-    expect(screen.getByPlaceholderText('デッキ名')).not.toBeNull();
-    expect(screen.getByText('↩ 元に戻す')).not.toBeNull();
-    expect(screen.getByText('+ ルート追加')).not.toBeNull();
-    expect(screen.getByText('JSON書き出し')).not.toBeNull();
+    expect(screen.getByText('DuelFlow')).not.toBeNull();
+    expect(screen.getByText('Test Deck')).not.toBeNull();
+    expect(screen.getByTitle('元に戻す (Ctrl+Z / Cmd+Z)')).not.toBeNull();
+    expect(screen.getByTitle('ルートをクリア')).not.toBeNull();
+    expect(screen.getByTitle('展開ファイルの読み込み')).not.toBeNull();
+    expect(screen.getByTitle('展開ファイルの保存')).not.toBeNull();
+    expect(screen.getByTitle('使い方 (Shift + ?)')).not.toBeNull();
   });
 });

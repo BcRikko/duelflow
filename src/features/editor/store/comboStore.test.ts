@@ -26,53 +26,16 @@ async function addTestCard(name = 'TestCard') {
 function getCurrentRoute() {
   const { currentDeck } = useComboStore.getState();
   if (!currentDeck) throw new Error('currentDeck is null');
-  return currentDeck.routes.find((r) => r.id === currentDeck.currentRouteId) ?? currentDeck.routes[0];
+  return currentDeck.route;
 }
-
-function addRouteAndSelect() {
-  const id = useComboStore.getState().addRoute('Route1');
-  useComboStore.getState().selectRoute(id);
-  return id;
-}
-
-describe('ルート管理', () => {
-  it('ルートを追加する', () => {
-    const id = useComboStore.getState().addRoute();
-    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(2);
-    expect(useComboStore.getState().currentDeck?.currentRouteId).toBe(id);
-  });
-
-  it('ルート名を指定して追加する', () => {
-    useComboStore.getState().addRoute('初動ルート');
-    expect(getCurrentRoute()?.name).toBe('初動ルート');
-  });
-
-  it('ルートを選択する', () => {
-    const id = addRouteAndSelect();
-    expect(useComboStore.getState().currentDeck?.currentRouteId).toBe(id);
-  });
-
-  it('ルートを削除する', () => {
-    const id = addRouteAndSelect();
-    useComboStore.getState().deleteRoute(id);
-    // 最後のルートを削除しても、空のキャンバスを防ぐため新規ルートが作成される
-    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(1);
-    expect(useComboStore.getState().currentDeck?.routes[0].name).toBe('Test Deck');
-    expect(useComboStore.getState().currentDeck?.currentRouteId).not.toBeNull();
-  });
-
-  it('ルート情報を更新する', () => {
-    const id = addRouteAndSelect();
-    useComboStore.getState().updateRoute(id, { name: 'Updated' });
-    expect(getCurrentRoute()?.name).toBe('Updated');
-  });
-});
 
 describe('カードカタログ', () => {
   it('カードを追加する', async () => {
     const id = await addTestCard();
     expect(useComboStore.getState().cards).toHaveLength(1);
     expect(useComboStore.getState().cards[0].id).toBe(id);
+    expect(useComboStore.getState().currentDeck?.cards).toHaveLength(1);
+    expect(useComboStore.getState().currentDeck?.cards[0].cardId).toBe(id);
   });
 
   it('カードを更新する', async () => {
@@ -88,9 +51,15 @@ describe('カードカタログ', () => {
   });
 });
 
+describe('ルート管理', () => {
+  it('ルート情報を更新する', () => {
+    useComboStore.getState().updateRoute({ name: 'Updated' });
+    expect(getCurrentRoute()?.name).toBe('Updated');
+  });
+});
+
 describe('ステップ管理', () => {
   it('ルート末尾にステップを追加する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -104,7 +73,6 @@ describe('ステップ管理', () => {
   });
 
   it('指定位置にステップを追加する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId = useComboStore.getState().addStepAtPosition(
       { type: 'action', actions: ['draw'], cardId, relatedCards: [] },
@@ -116,7 +84,6 @@ describe('ステップ管理', () => {
   });
 
   it('指定位置追加時は自動接続しない', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     useComboStore.getState().addStepAtPosition(
       { type: 'action', actions: ['normalSummon'], cardId, relatedCards: [] },
@@ -130,7 +97,6 @@ describe('ステップ管理', () => {
   });
 
   it('ステップを追加すると既存の末端から接続される', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const firstId = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -149,7 +115,6 @@ describe('ステップ管理', () => {
   });
 
   it('指定ステップの後にステップを追加する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId1 = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -168,7 +133,6 @@ describe('ステップ管理', () => {
   });
 
   it('分岐を追加する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const sourceId = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -187,7 +151,6 @@ describe('ステップ管理', () => {
   });
 
   it('接続線上にステップを挿入する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -213,7 +176,6 @@ describe('ステップ管理', () => {
   });
 
   it('ステップを更新する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -227,7 +189,6 @@ describe('ステップ管理', () => {
   });
 
   it('空の説明もそのまま更新する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -242,7 +203,6 @@ describe('ステップ管理', () => {
   });
 
   it('ステップ位置を更新する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -256,7 +216,6 @@ describe('ステップ管理', () => {
   });
 
   it('ステップを削除する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -271,24 +230,18 @@ describe('ステップ管理', () => {
 
 describe('接続線管理', () => {
   it('接続線を追加する', async () => {
-    addRouteAndSelect();
     const currentDeck = useComboStore.getState().currentDeck;
     if (!currentDeck) throw new Error('currentDeck is null');
-    const route = getCurrentRoute();
     useComboStore.setState({
       currentDeck: {
         ...currentDeck,
-        routes: currentDeck.routes.map((r) =>
-          r.id === route.id
-            ? {
-                ...r,
-                steps: [
-                  { id: 'step_1', type: 'action' as const, actions: ['normalSummon'], cardId: 'card_1', relatedCards: [], position: { x: 0, y: 0 } },
-                  { id: 'step_2', type: 'action' as const, actions: ['draw'], cardId: 'card_1', relatedCards: [], position: { x: 100, y: 0 } },
-                ],
-              }
-            : r,
-        ),
+        route: {
+          ...currentDeck.route,
+          steps: [
+            { id: 'step_1', type: 'action' as const, actions: ['normalSummon'], cardId: 'card_1', relatedCards: [], position: { x: 0, y: 0 } },
+            { id: 'step_2', type: 'action' as const, actions: ['draw'], cardId: 'card_1', relatedCards: [], position: { x: 100, y: 0 } },
+          ],
+        },
       },
     });
     const connectionId = useComboStore.getState().addConnection({
@@ -300,24 +253,18 @@ describe('接続線管理', () => {
   });
 
   it('接続線追加時にNodeの位置は変わらない', () => {
-    addRouteAndSelect();
     const currentDeck = useComboStore.getState().currentDeck;
     if (!currentDeck) throw new Error('currentDeck is null');
-    const route = getCurrentRoute();
     useComboStore.setState({
       currentDeck: {
         ...currentDeck,
-        routes: currentDeck.routes.map((r) =>
-          r.id === route.id
-            ? {
-                ...r,
-                steps: [
-                  { id: 'step_1', type: 'action' as const, actions: ['normalSummon'], cardId: 'card_1', relatedCards: [], position: { x: 10, y: 20 } },
-                  { id: 'step_2', type: 'action' as const, actions: ['draw'], cardId: 'card_1', relatedCards: [], position: { x: 110, y: 120 } },
-                ],
-              }
-            : r,
-        ),
+        route: {
+          ...currentDeck.route,
+          steps: [
+            { id: 'step_1', type: 'action' as const, actions: ['normalSummon'], cardId: 'card_1', relatedCards: [], position: { x: 10, y: 20 } },
+            { id: 'step_2', type: 'action' as const, actions: ['draw'], cardId: 'card_1', relatedCards: [], position: { x: 110, y: 120 } },
+          ],
+        },
       },
     });
     useComboStore.getState().addConnection({ source: 'step_1', target: 'step_2' });
@@ -327,7 +274,6 @@ describe('接続線管理', () => {
   });
 
   it('自己接続は追加しない', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -340,24 +286,18 @@ describe('接続線管理', () => {
   });
 
   it('重複接続は追加しない', () => {
-    addRouteAndSelect();
     const currentDeck = useComboStore.getState().currentDeck;
     if (!currentDeck) throw new Error('currentDeck is null');
-    const route = getCurrentRoute();
     useComboStore.setState({
       currentDeck: {
         ...currentDeck,
-        routes: currentDeck.routes.map((r) =>
-          r.id === route.id
-            ? {
-                ...r,
-                steps: [
-                  { id: 'step_1', type: 'action' as const, actions: ['normalSummon'], cardId: 'card_1', relatedCards: [], position: { x: 0, y: 0 } },
-                  { id: 'step_2', type: 'action' as const, actions: ['draw'], cardId: 'card_1', relatedCards: [], position: { x: 100, y: 0 } },
-                ],
-              }
-            : r,
-        ),
+        route: {
+          ...currentDeck.route,
+          steps: [
+            { id: 'step_1', type: 'action' as const, actions: ['normalSummon'], cardId: 'card_1', relatedCards: [], position: { x: 0, y: 0 } },
+            { id: 'step_2', type: 'action' as const, actions: ['draw'], cardId: 'card_1', relatedCards: [], position: { x: 100, y: 0 } },
+          ],
+        },
       },
     });
     const firstId = useComboStore.getState().addConnection({ source: 'step_1', target: 'step_2' });
@@ -367,7 +307,6 @@ describe('接続線管理', () => {
   });
 
   it('接続線を削除する', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId1 = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -393,9 +332,8 @@ describe('接続線管理', () => {
 
 describe('ドキュメント入出力', () => {
   it('ドキュメントをエクスポートする', () => {
-    addRouteAndSelect();
     const deck = useComboStore.getState().exportDocument();
-    expect(deck?.routes).toHaveLength(2);
+    expect(deck?.route).toBeDefined();
   });
 
   it('ドキュメントをインポートする', async () => {
@@ -404,22 +342,18 @@ describe('ドキュメント入出力', () => {
       name: 'Imported',
       source: { type: 'neuron' as const, deckCode: '' },
       cards: [],
-      routes: [
-        {
-          id: 'route_imported',
-          name: 'Imported',
-          description: '',
-          startingCardIds: [] as string[],
-          steps: [],
-          connections: [],
-          result: { cardIds: [] as string[], description: '' },
-        },
-      ],
-      currentRouteId: 'route_imported',
+      route: {
+        id: 'route_imported',
+        name: 'Imported',
+        description: '',
+        startingCardIds: [] as string[],
+        steps: [],
+        connections: [],
+        result: { cardIds: [] as string[], description: '' },
+      },
     };
     await useComboStore.getState().importDocument(deck);
-    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(1);
-    expect(useComboStore.getState().currentDeck?.currentRouteId).toBe('route_imported');
+    expect(useComboStore.getState().currentDeck?.route.id).toBe('route_imported');
   });
 
   it('保存HTMLからインポートすると画像をIndexedDBに保存する', async () => {
@@ -442,17 +376,17 @@ describe('ドキュメント入出力', () => {
       [imgFile],
     );
 
-    expect(useComboStore.getState().currentDeck?.name).toBe('HTML Deck');
-    expect(useComboStore.getState().cards[0].type).toBe('効果モンスター');
+    const state = useComboStore.getState();
+    expect(state.currentDeck?.name).toBe('HTML Deck');
+    expect(state.currentDeck?.cards).toHaveLength(1);
+    expect(state.cards[0].type).toBe('効果モンスター');
 
     const saved = await getCard('neuron_1');
     expect(saved?.imageBlob).not.toBeNull();
   });
 
-  it('clearAll でドキュメントと履歴がリセットされる', async () => {
+  it('clearAll でドキュメントと履歴がリセットされ、デッキは空になる', async () => {
     await useComboStore.getState().addCardToCatalog({ name: 'Card', type: '効果モンスター', imageUrl: '' });
-    const routeId = useComboStore.getState().addRoute('Route');
-    useComboStore.getState().selectRoute(routeId);
     useComboStore.getState().selectStep('nonexistent');
     useComboStore.getState().setNodeEditing(true);
 
@@ -460,11 +394,8 @@ describe('ドキュメント入出力', () => {
 
     const state = useComboStore.getState();
     expect(state.cards).toHaveLength(0);
-    // クリア後も空のキャンバスを防ぐため初期ルートが1つ残る
-    expect(state.currentDeck?.routes).toHaveLength(1);
-    expect(state.currentDeck?.routes[0].name).toBe('新規デッキ');
-    expect(state.currentDeck?.name).toBe('新規デッキ');
-    expect(state.currentDeck?.currentRouteId).toBe(state.currentDeck?.routes[0].id);
+    expect(state.decks).toHaveLength(0);
+    expect(state.currentDeck).toBeNull();
     expect(state.selection).toBeNull();
     expect(state.past).toHaveLength(0);
     expect(state.future).toHaveLength(0);
@@ -529,33 +460,32 @@ describe('ドキュメント入出力', () => {
 });
 
 describe('履歴', () => {
-  it('Undo で直前の状態に戻る', () => {
-    addRouteAndSelect();
+  it('Undo で直前の状態に戻る', async () => {
+    useComboStore.getState().updateRoute({ name: 'Changed' });
     expect(useComboStore.getState().canUndo()).toBe(true);
     performUndo();
-    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(1);
+    expect(useComboStore.getState().currentDeck?.route.name).toBe('Test Deck');
     expect(useComboStore.getState().canRedo()).toBe(true);
   });
 
-  it('Redo で元に戻す', () => {
-    addRouteAndSelect();
+  it('Redo で元に戻す', async () => {
+    useComboStore.getState().updateRoute({ name: 'Changed' });
     performUndo();
     performRedo();
-    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(2);
+    expect(useComboStore.getState().currentDeck?.route.name).toBe('Changed');
   });
 
-  it('新しい変更を加えると future がクリアされる', () => {
-    addRouteAndSelect();
+  it('新しい変更を加えると future がクリアされる', async () => {
+    useComboStore.getState().updateRoute({ name: 'Changed' });
     performUndo();
     expect(useComboStore.getState().canRedo()).toBe(true);
-    useComboStore.getState().addRoute();
+    useComboStore.getState().updateRoute({ name: 'Changed2' });
     expect(useComboStore.getState().canRedo()).toBe(false);
   });
 });
 
 describe('ヘルパー関数', () => {
   it('findRouteByStepId でステップが属するルートを探す', async () => {
-    addRouteAndSelect();
     const cardId = await addTestCard();
     const stepId = useComboStore.getState().addStepToEnd({
       type: 'action',
@@ -563,30 +493,24 @@ describe('ヘルパー関数', () => {
       cardId,
       relatedCards: [],
     });
-    const route = findRouteByStepId(useComboStore.getState().currentDeck?.routes ?? [], stepId);
+    const route = findRouteByStepId(useComboStore.getState().currentDeck?.route, stepId);
     expect(route).toBeDefined();
     expect(route?.steps.some((s) => s.id === stepId)).toBe(true);
   });
 
   it('findRouteByConnectionId で接続線が属するルートを探す', () => {
-    addRouteAndSelect();
     const currentDeck = useComboStore.getState().currentDeck;
     if (!currentDeck) throw new Error('currentDeck is null');
-    const route = getCurrentRoute();
     useComboStore.setState({
       currentDeck: {
         ...currentDeck,
-        routes: currentDeck.routes.map((r) =>
-          r.id === route.id
-            ? {
-                ...r,
-                steps: [
-                  { id: 'step_1', type: 'action' as const, actions: ['normalSummon'], cardId: 'card_1', relatedCards: [], position: { x: 0, y: 0 } },
-                  { id: 'step_2', type: 'action' as const, actions: ['draw'], cardId: 'card_1', relatedCards: [], position: { x: 100, y: 0 } },
-                ],
-              }
-            : r,
-        ),
+        route: {
+          ...currentDeck.route,
+          steps: [
+            { id: 'step_1', type: 'action' as const, actions: ['normalSummon'], cardId: 'card_1', relatedCards: [], position: { x: 0, y: 0 } },
+            { id: 'step_2', type: 'action' as const, actions: ['draw'], cardId: 'card_1', relatedCards: [], position: { x: 100, y: 0 } },
+          ],
+        },
       },
     });
     const connectionId = useComboStore.getState().addConnection({
@@ -594,30 +518,27 @@ describe('ヘルパー関数', () => {
       target: 'step_2',
     });
     expect(connectionId).not.toBe('');
-    const foundRoute = findRouteByConnectionId(useComboStore.getState().currentDeck?.routes ?? [], connectionId);
+    const foundRoute = findRouteByConnectionId(useComboStore.getState().currentDeck?.route, connectionId);
     expect(foundRoute).toBeDefined();
   });
 
-  it('relayoutDeck で全ルートのレイアウトを再計算する', () => {
+  it('relayoutDeck でルートのレイアウトを再計算する', () => {
     const deck = {
       deckId: 'deck_1',
       name: 'Test',
       source: { type: 'neuron' as const, deckCode: '' },
       cards: [],
-      routes: [
-        {
-          id: 'route_1',
-          name: 'R1',
-          description: '',
-          startingCardIds: [] as string[],
-          steps: [{ id: 'step_1', type: 'note' as const, description: 'メモ', position: { x: 0, y: 0 } }],
-          connections: [],
-          result: { cardIds: [] as string[], description: '' },
-        },
-      ],
-      currentRouteId: 'route_1',
+      route: {
+        id: 'route_1',
+        name: 'R1',
+        description: '',
+        startingCardIds: [] as string[],
+        steps: [{ id: 'step_1', type: 'note' as const, description: 'メモ', position: { x: 0, y: 0 } }],
+        connections: [],
+        result: { cardIds: [] as string[], description: '' },
+      },
     };
     const relayouted = relayoutDeck(deck);
-    expect(relayouted.routes[0].steps[0].position.x).not.toBe(0);
+    expect(relayouted.route.steps[0].position.x).not.toBe(0);
   });
 });

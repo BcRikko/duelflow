@@ -26,30 +26,25 @@ function renderNode(data = baseData, onSaved = vi.fn()) {
 }
 
 function setupRouteWithStep() {
-  const state = useComboStore.getState();
-  state.addRoute();
-  const currentDeck = state.currentDeck;
+  const currentDeck = useComboStore.getState().currentDeck;
   if (!currentDeck) throw new Error('currentDeck is null');
-  const route = currentDeck.routes[0];
   useComboStore.setState({
     currentDeck: {
       ...currentDeck,
-      routes: [
-        {
-          ...route,
-          steps: [
-            {
-              id: 'step_1',
-              type: 'action',
-              actions: ['normalSummon'],
-              cardId: 'card_1',
-              relatedCards: [],
-              description: '説明',
-              position: { x: 0, y: 0 },
-            },
-          ],
-        },
-      ],
+      route: {
+        ...currentDeck.route,
+        steps: [
+          {
+            id: 'step_1',
+            type: 'action',
+            actions: ['normalSummon'],
+            cardId: 'card_1',
+            relatedCards: [],
+            description: '説明',
+            position: { x: 0, y: 0 },
+          },
+        ],
+      },
     },
   });
 }
@@ -74,14 +69,14 @@ describe('ActionNodeEdit', () => {
     await user.click(screen.getByLabelText('通常召喚'));
     await user.click(screen.getByLabelText('特殊召喚'));
     await user.click(document.body);
-    const step = useComboStore.getState().currentDeck?.routes[0].steps[0];
+    const step = useComboStore.getState().currentDeck?.route.steps[0];
     expect(step?.actions).toEqual(['specialSummon']);
   });
 
   it('関連カードを追加できる', () => {
     renderNode();
     fireEvent.click(screen.getByText('+ 関連カード'));
-    expect(screen.getAllByText('起点').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('コスト').length).toBeGreaterThan(0);
   });
 
   it('説明を変更してNode外をクリックすると保存される', async () => {
@@ -92,7 +87,7 @@ describe('ActionNodeEdit', () => {
     await user.type(textarea, '追加');
     await user.click(document.body);
 
-    const step = useComboStore.getState().currentDeck?.routes[0].steps[0];
+    const step = useComboStore.getState().currentDeck?.route.steps[0];
     expect(step?.description).toBe('説明追加');
   });
 });

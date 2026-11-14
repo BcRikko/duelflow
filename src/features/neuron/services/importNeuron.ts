@@ -12,6 +12,7 @@ const neuronCardSchema = z.object({
     .string()
     .max(2048)
     .refine(isSafeImageUrl),
+  description: z.string().optional(),
 });
 
 const neuronDeckSchema = z.object({
@@ -44,6 +45,7 @@ export function convertNeuronToComboDocument(data: NeuronDeckData): ComboDocumen
           name: card.name,
           imageUrl: card.imageUrl,
           type: card.type || '',
+          description: card.description,
         });
       }
 

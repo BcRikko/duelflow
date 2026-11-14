@@ -11,43 +11,43 @@ describe('HistoryControls', () => {
 
   it('Undo/Redo ボタンを表示する', () => {
     render(<HistoryControls />);
-    expect(screen.getByText('↩ 元に戻す')).not.toBeNull();
-    expect(screen.getByText('↪ やり直し')).not.toBeNull();
+    expect(screen.getByTitle('元に戻す (Ctrl+Z / Cmd+Z)')).not.toBeNull();
+    expect(screen.getByTitle('やり直し (Ctrl+Y / Cmd+Shift+Z)')).not.toBeNull();
   });
 
   it('変更履歴がない場合はボタンが無効', () => {
     render(<HistoryControls />);
-    expect((screen.getByText('↩ 元に戻す') as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByText('↪ やり直し') as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByTitle('元に戻す (Ctrl+Z / Cmd+Z)') as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByTitle('やり直し (Ctrl+Y / Cmd+Shift+Z)') as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('Undo ボタンで直前の状態に戻る', () => {
-    useComboStore.getState().addRoute();
+    useComboStore.getState().updateRoute({ name: 'Changed' });
     render(<HistoryControls />);
-    fireEvent.click(screen.getByText('↩ 元に戻す'));
-    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(1);
+    fireEvent.click(screen.getByTitle('元に戻す (Ctrl+Z / Cmd+Z)'));
+    expect(useComboStore.getState().currentDeck?.route.name).toBe('Test Deck');
   });
 
   it('Redo ボタンでやり直す', () => {
-    useComboStore.getState().addRoute();
+    useComboStore.getState().updateRoute({ name: 'Changed' });
     performUndo();
     render(<HistoryControls />);
-    fireEvent.click(screen.getByText('↪ やり直し'));
-    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(2);
+    fireEvent.click(screen.getByTitle('やり直し (Ctrl+Y / Cmd+Shift+Z)'));
+    expect(useComboStore.getState().currentDeck?.route.name).toBe('Changed');
   });
 
   it('Ctrl+Z で元に戻す', () => {
-    useComboStore.getState().addRoute();
+    useComboStore.getState().updateRoute({ name: 'Changed' });
     render(<HistoryControls />);
     fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
-    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(1);
+    expect(useComboStore.getState().currentDeck?.route.name).toBe('Test Deck');
   });
 
   it('Ctrl+Y でやり直す', () => {
-    useComboStore.getState().addRoute();
+    useComboStore.getState().updateRoute({ name: 'Changed' });
     performUndo();
     render(<HistoryControls />);
     fireEvent.keyDown(window, { key: 'y', ctrlKey: true });
-    expect(useComboStore.getState().currentDeck?.routes).toHaveLength(2);
+    expect(useComboStore.getState().currentDeck?.route.name).toBe('Changed');
   });
 });

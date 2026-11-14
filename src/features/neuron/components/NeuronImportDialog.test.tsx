@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ReactFlowProvider } from '@xyflow/react';
+import { readFileSync } from 'fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useComboStore } from '../../editor/store/comboStore';
 import { resetStore } from '../../../test/helpers';
@@ -22,7 +23,8 @@ beforeEach(() => {
 describe('NeuronImportDialog', () => {
   it('ダイアログが表示される', () => {
     renderDialog();
-    expect(screen.getByText('ニューロンからインポート')).not.toBeNull();
+    expect(screen.getByText('デッキを追加')).not.toBeNull();
+    expect(screen.getByText('遊戯王NEURON')).not.toBeNull();
   });
 
   it('キャンセルボタンで onClose が呼ばれる', () => {
@@ -32,54 +34,9 @@ describe('NeuronImportDialog', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('有効な JSON をインポートすると onClose が呼ばれる', async () => {
-    const onClose = vi.fn();
-    renderDialog(onClose);
-
-    const json = JSON.stringify({
-      deck: {
-        id: 'neuron_1',
-        name: 'Test',
-        main: [{ id: 'c1', name: 'CardA', quantity: 1, imageUrl: '' }],
-        ex: [],
-        side: [],
-      },
-    });
-
-    fireEvent.change(screen.getByPlaceholderText('ここにJSONを貼り付け'), {
-      target: { value: json },
-    });
-    fireEvent.click(screen.getByText('インポート'));
-
-    await waitFor(() => {
-      expect(onClose).toHaveBeenCalledTimes(1);
-      expect(useComboStore.getState().cards).toHaveLength(1);
-    });
-  });
-
-  it('無効な JSON でアラートが表示される', () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+  it('デッキレシピのフォルダー選択ボタンが表示される', () => {
     renderDialog();
-
-    fireEvent.change(screen.getByPlaceholderText('ここにJSONを貼り付け'), {
-      target: { value: 'not json' },
-    });
-    fireEvent.click(screen.getByText('インポート'));
-
-    expect(alertSpy).toHaveBeenCalled();
-    alertSpy.mockRestore();
-  });
-
-  it('JSON が空の場合インポートボタンが無効', () => {
-    renderDialog();
-    const button = screen.getByText('インポート');
-    expect(button.disabled).toBe(true);
-  });
-
-  it('「保存HTML」タブを切り替えるとフォルダ選択入力が表示される', () => {
-    renderDialog();
-    fireEvent.click(screen.getByText('保存HTML'));
-    expect(screen.getByText(/保存したフォルダを選択/)).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'デッキレシピのフォルダーを選択' })).not.toBeNull();
   });
 
   it('HTMLフォルダを選択するとインポート処理が呼ばれる', async () => {
@@ -87,7 +44,6 @@ describe('NeuronImportDialog', () => {
     const importSpy = vi.spyOn(useComboStore.getState(), 'importNeuronHtml').mockResolvedValue();
 
     renderDialog(onClose);
-    fireEvent.click(screen.getByText('保存HTML'));
 
     const html = `
       <!DOCTYPE html>
@@ -120,5 +76,56 @@ describe('NeuronImportDialog', () => {
     });
 
     importSpy.mockRestore();
+  });
+
+  it('HTMLファイルを選択するとカード一覧が登録される', async () => {
+    renderDialog();
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head><meta property="title" content="Test Deck | 遊戯王 デッキレシピ 詳細"></head>
+        <body>
+          <table id="monster_list">
+            <tr>
+              <td class="c_img"><img src="./test_files/card_icon_effect.png"></td>
+              <td class="card_name">
+                <span>Test Monster</span>
+                <input type="hidden" class="link_value" value="cid=12345">
+              </td>
+              <td class="num"><span>1</span></td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const htmlFile = new File([html], 'deck.html', { type: 'text/html' });
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await userEvent.upload(input, [htmlFile]);
+
+    await waitFor(() => {
+      const state = useComboStore.getState();
+      expect(state.currentDeck?.name).toBe('Test Deck');
+      expect(state.currentDeck?.cards).toHaveLength(1);
+      expect(state.cards).toHaveLength(1);
+      expect(state.cards[0].name).toBe('Test Monster');
+    });
+  });
+
+  it('実際のニューロンデッキHTMLを選択するとカード一覧が登録される', async () => {
+    renderDialog();
+
+    const html = readFileSync('/tmp/neuron_deck.html', 'utf8');
+    const htmlFile = new File([html], 'deck.html', { type: 'text/html' });
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await userEvent.upload(input, [htmlFile]);
+
+    await waitFor(() => {
+      const state = useComboStore.getState();
+      expect(state.currentDeck?.name).toBe('レッドデーモン拡張');
+      expect(state.currentDeck?.cards.length).toBeGreaterThan(0);
+      expect(state.cards.length).toBeGreaterThan(0);
+    });
   });
 });

@@ -1,6 +1,5 @@
 import {
   Background,
-  Controls,
   ReactFlow,
   ReactFlowProvider,
   useEdgesState,
@@ -12,7 +11,7 @@ import {
   type Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StepWithoutIdPosition } from '../../model/form';
 import { detectCardTypeCategory } from '../../../../shared/cardType';
 import { useComboStore } from '../../store/comboStore';
@@ -20,6 +19,9 @@ import { ActionNode } from '../nodes/ActionNode';
 import { NoteNode } from '../nodes/NoteNode';
 import { EditableEdge } from '../edges/EditableEdge';
 import { CanvasControls } from './CanvasControls';
+import { CopyrightNotice } from './CopyrightNotice';
+import { NeuronImportDialog } from '../../../neuron/components/NeuronImportDialog';
+import { PlusIcon } from '../../../../components/icons';
 import { getSnapPosition } from './snap';
 import styles from './ComboCanvas.module.css';
 
@@ -34,8 +36,7 @@ const edgeTypes = {
 
 function CanvasContent() {
   const currentDeck = useComboStore((state) => state.currentDeck);
-  const routes = useMemo(() => currentDeck?.routes ?? [], [currentDeck]);
-  const currentRouteId = currentDeck?.currentRouteId ?? null;
+  const route = currentDeck?.route ?? null;
   const cardCatalog = useComboStore((state) => state.cards);
   const selection = useComboStore((state) => state.selection);
   const addNodeForm = useComboStore((state) => state.addNodeForm);
@@ -58,23 +59,22 @@ function CanvasContent() {
 
   const structureKey = useMemo(
     () =>
-      routes
-        .map(
-          (r) =>
-            `${r.id}|${r.steps.map((s) => s.id).join(',')}|${r.connections.map((c) => c.id).join(',')}`,
-        )
-        .join('||'),
-    [routes],
+      route
+        ? `${route.id}|${route.steps.map((s) => s.id).join(',')}|${route.connections.map((c) => c.id).join(',')}`
+        : '',
+    [route],
   );
 
   const defaultViewport = useMemo(() => {
+    if (!route) {
+      return { x: 0, y: 0, zoom: 1 };
+    }
+
     let minX = Infinity;
     let minY = Infinity;
-    for (const route of routes) {
-      for (const step of route.steps) {
-        minX = Math.min(minX, step.position.x);
-        minY = Math.min(minY, step.position.y);
-      }
+    for (const step of route.steps) {
+      minX = Math.min(minX, step.position.x);
+      minY = Math.min(minY, step.position.y);
     }
     const padding = 20;
     return {
@@ -82,61 +82,66 @@ function CanvasContent() {
       y: minY === Infinity ? 0 : -minY + padding,
       zoom: 1,
     };
-  }, [routes]);
+  }, [route]);
 
   /* Sync domain model to React Flow nodes/edges when route structure changes */
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
+    if (!route) {
+      setNodes([]);
+      setEdges([]);
+      return;
+    }
+
     const cardMap = new Map(cardCatalog.map((c) => [c.id, c]));
 
     const rfNodes: Node[] = [];
     const rfEdges: Edge[] = [];
 
-    routes.forEach((route) => {
-      for (const step of route.steps) {
-        if (step.type === 'action') {
-          const card = cardMap.get(step.cardId);
-          rfNodes.push({
-            id: step.id,
-            type: 'actionNode',
-            position: step.position,
-            data: {
-              cardName: card?.name ?? '不明なカード',
-              imageUrl: card?.imageUrl ?? '',
-              actions: step.actions,
-              cardId: step.cardId,
-              cardType: detectCardTypeCategory(card?.type ?? ''),
-              description: step.description,
-              relatedCards: step.relatedCards,
-            },
-          });
-        } else {
-          rfNodes.push({
-            id: step.id,
-            type: 'noteNode',
-            position: step.position,
-            data: {
-              description: step.description,
-            },
-          });
-        }
-      }
-
-      for (const conn of route.connections) {
-        rfEdges.push({
-          id: conn.id,
-          source: conn.source,
-          target: conn.target,
-          label: conn.label,
-          type: 'editableEdge',
-          style: { stroke: conn.label ? '#1976d2' : '#999', strokeWidth: conn.label ? 2 : 1 },
+    for (const step of route.steps) {
+      if (step.type === 'action') {
+        const card = cardMap.get(step.cardId);
+        rfNodes.push({
+          id: step.id,
+          type: 'actionNode',
+          position: step.position,
+          data: {
+            cardName: card?.name ?? '不明なカード',
+            imageUrl: card?.imageUrl ?? '',
+            actions: step.actions,
+            cardId: step.cardId,
+            cardType: detectCardTypeCategory(card?.type ?? ''),
+            description: step.description,
+            cardDescription: card?.description,
+            relatedCards: step.relatedCards,
+          },
+        });
+      } else {
+        rfNodes.push({
+          id: step.id,
+          type: 'noteNode',
+          position: step.position,
+          data: {
+            description: step.description,
+          },
         });
       }
-    });
+    }
+
+    for (const conn of route.connections) {
+      rfEdges.push({
+        id: conn.id,
+        source: conn.source,
+        target: conn.target,
+        label: conn.label,
+        type: 'editableEdge',
+        style: { stroke: conn.label ? '#1976d2' : '#999', strokeWidth: conn.label ? 2 : 1 },
+      });
+    }
 
     setNodes(rfNodes);
     setEdges(rfEdges);
-  }, [structureKey, cardCatalog, routes, setNodes, setEdges]);
+  }, [structureKey, cardCatalog, route, setNodes, setEdges]);
 
   // Data sync effect: update node data and edge labels when step/connection data changes
   // without changing positions
@@ -145,7 +150,7 @@ function CanvasContent() {
 
     setNodes((current) =>
       current.map((node) => {
-        const step = routes.flatMap((r) => r.steps).find((s) => s.id === node.id);
+        const step = route?.steps.find((s) => s.id === node.id);
         if (!step) return node;
 
         if (step.type === 'action') {
@@ -159,6 +164,7 @@ function CanvasContent() {
               cardId: step.cardId,
               cardType: detectCardTypeCategory(card?.type ?? ''),
               description: step.description,
+              cardDescription: card?.description,
               relatedCards: step.relatedCards,
             },
           };
@@ -175,7 +181,7 @@ function CanvasContent() {
 
     setEdges((current) =>
       current.map((edge) => {
-        const conn = routes.flatMap((r) => r.connections).find((c) => c.id === edge.id);
+        const conn = route?.connections.find((c) => c.id === edge.id);
         if (!conn) return edge;
         return {
           ...edge,
@@ -184,7 +190,7 @@ function CanvasContent() {
         };
       }),
     );
-  }, [routes, cardCatalog, setNodes, setEdges]);
+  }, [route, cardCatalog, setNodes, setEdges]);
 
   // Selection effect: update selected flags without changing positions
   useEffect(() => {
@@ -285,12 +291,9 @@ function CanvasContent() {
     (event: React.DragEvent) => {
       event.preventDefault();
 
-      const cardId = event.dataTransfer.getData('application/duelflow-card');
-      if (!cardId) return;
-
-      if (!currentRouteId) {
+      if (!route) {
         // eslint-disable-next-line no-alert
-        alert('ルートが選択されていません。ヘッダーからルートを選択してください。');
+        alert('デッキが選択されていません。');
         return;
       }
 
@@ -298,6 +301,15 @@ function CanvasContent() {
         x: event.clientX,
         y: event.clientY,
       });
+
+      const isNote = event.dataTransfer.getData('application/duelflow-note') === '1';
+      if (isNote) {
+        addStepAtPosition({ type: 'note', description: '' }, position);
+        return;
+      }
+
+      const cardId = event.dataTransfer.getData('application/duelflow-card');
+      if (!cardId) return;
 
       const card = cardCatalog.find((c) => c.id === cardId);
       if (!card) return;
@@ -312,7 +324,7 @@ function CanvasContent() {
 
       addStepAtPosition(newStep, position);
     },
-    [addStepAtPosition, addNodeForm, cardCatalog, currentRouteId, screenToFlowPosition],
+    [addStepAtPosition, addNodeForm, cardCatalog, route, screenToFlowPosition],
   );
 
   useEffect(() => {
@@ -344,8 +356,8 @@ function CanvasContent() {
     return () => element.removeEventListener('wheel', handleWheel);
   }, [getZoom, isNodeEditing, store, zoomTo]);
 
-  if (routes.length === 0) {
-    return <div className={styles.empty}>ルートがありません</div>;
+  if (!route) {
+    return <EmptyDeckAnnouncement />;
   }
 
   return (
@@ -367,20 +379,44 @@ function CanvasContent() {
         onNodeDragStop={onNodeDragStop}
         onDragOver={onDragOver}
         onDrop={onDrop}
-      defaultViewport={defaultViewport}
-      zoomOnScroll={false}
-      panOnScroll={false}
-      preventScrolling={false}
-      minZoom={0.5}
-      maxZoom={2}
+        defaultViewport={defaultViewport}
+        zoomOnScroll={false}
+        panOnScroll={false}
+        preventScrolling={false}
+        minZoom={0.5}
+        maxZoom={2}
         nodesDraggable
         nodesConnectable
-        attributionPosition="bottom-left"
+        attributionPosition="bottom-right"
       >
         <Background gap={16} size={1} />
-        <Controls />
         <CanvasControls />
+        <CopyrightNotice />
       </ReactFlow>
+    </div>
+  );
+}
+
+function EmptyDeckAnnouncement() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className={styles.empty}>
+      <div className={styles.emptyContent}>
+        <p className={styles.emptyTitle}>まずは「デッキを追加」しましょう</p>
+        <p className={styles.emptyDescription}>
+          サイドバーにカード一覧が表示されるので、ドラッグ＆ドロップで展開ルートがつくれます。
+        </p>
+        <button
+          type="button"
+          className={styles.emptyAddButton}
+          onClick={() => setIsOpen(true)}
+        >
+          <PlusIcon className={styles.emptyAddIcon} />
+          デッキを追加
+        </button>
+      </div>
+      {isOpen ? <NeuronImportDialog onClose={() => setIsOpen(false)} /> : null}
     </div>
   );
 }
