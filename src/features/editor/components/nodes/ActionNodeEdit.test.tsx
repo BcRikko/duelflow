@@ -9,7 +9,6 @@ import type { ActionNodeData } from './types';
 
 const baseData: ActionNodeData = {
   cardName: 'ブラック・マジシャン',
-  imageUrl: '',
   actions: ['normalSummon'],
   cardId: 'card_1',
   cardType: 'monster',
@@ -52,8 +51,8 @@ function setupRouteWithStep() {
 describe('ActionNodeEdit', () => {
   beforeEach(async () => {
     resetStore();
-    await useComboStore.getState().addCardToCatalog({ name: 'カードA', imageUrl: '', type: 'モンスター' });
-    await useComboStore.getState().addCardToCatalog({ name: 'カードB', imageUrl: '', type: '魔法' });
+    await useComboStore.getState().addCardToCatalog({ name: 'カードA', type: 'モンスター' });
+    await useComboStore.getState().addCardToCatalog({ name: 'カードB', type: '魔法' });
     setupRouteWithStep();
   });
 

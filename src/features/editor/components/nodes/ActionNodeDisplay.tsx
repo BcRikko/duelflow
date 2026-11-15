@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { getActionLabels } from '../../../../shared/actionDefinitions';
 import { stepCardRoleLabels } from '../../../combo/model/schema';
 import type { StepCardRole } from '../../../combo/model/types';
-import { useCardImageUrl } from '../../../../shared/useCardImageUrl';
+import { CardImage } from '../../../../components/CardImage';
 import { useComboStore } from '../../store/comboStore';
 import { NodeDeleteButton } from './NodeDeleteButton';
 import { NodeHandles } from './NodeHandles';
@@ -28,14 +28,14 @@ type Props = {
 };
 
 function ActionNodeImage({ data }: { data: ActionNodeData }) {
-  const localImageUrl = useCardImageUrl(data.cardId, data.cardName);
-  const src = localImageUrl || data.imageUrl;
-
-  if (src) {
-    return <img src={src} alt={data.cardName} className={styles.image} />;
-  }
-
-  return <div className={styles.placeholder}>{data.cardName.charAt(0)}</div>;
+  return (
+    <CardImage
+      cardId={data.cardId}
+      cardName={data.cardName}
+      className={styles.image}
+      placeholderClassName={styles.placeholder}
+    />
+  );
 }
 
 type ParsedCardDescription = {

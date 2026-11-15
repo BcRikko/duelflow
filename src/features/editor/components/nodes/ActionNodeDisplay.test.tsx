@@ -4,9 +4,14 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { ActionNodeDisplay } from './ActionNodeDisplay';
 import type { ActionNodeData } from './types';
 
+vi.mock('../../../../components/CardImage', () => ({
+  CardImage: ({ placeholderClassName, cardName }: { placeholderClassName?: string; cardName: string }) => (
+    <div className={placeholderClassName}>{cardName.charAt(0)}</div>
+  ),
+}));
+
 const baseData: ActionNodeData = {
   cardName: 'ブラック・マジシャン',
-  imageUrl: '',
   actions: ['normalSummon'],
   cardId: 'card_1',
   cardType: 'monster',
@@ -29,14 +34,9 @@ describe('ActionNodeDisplay', () => {
     expect(screen.getByText('通常召喚')).not.toBeNull();
   });
 
-  it('画像URLがない場合はプレースホルダーを表示する', () => {
+  it('画像がない場合はプレースホルダーを表示する', () => {
     renderNode();
     expect(screen.getByText('ブ')).not.toBeNull();
-  });
-
-  it('画像URLがある場合は画像を表示する', () => {
-    renderNode({ ...baseData, imageUrl: 'http://example.com/image.jpg' });
-    expect(screen.getByAltText('ブラック・マジシャン')).not.toBeNull();
   });
 
   it('クリックで編集モードに入る', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateComboDocument } from './schema';
+import { validateComboDocument, validateDeckRecord } from './schema';
 
 function createValidDocument() {
   return {
@@ -10,9 +10,7 @@ function createValidDocument() {
       source: { type: 'neuron' as const, deckCode: '' },
       cards: [{ cardId: 'card_1', quantity: 1, section: 'main' as const }],
     },
-    cardCatalog: [
-      { id: 'card_1', name: 'テストカード', imageUrl: '', type: 'monster' },
-    ],
+    cardCatalog: [{ id: 'card_1', name: 'テストカード', type: 'monster' }],
     routes: [
       {
         id: 'route_1',
@@ -50,7 +48,7 @@ describe('validateComboDocument', () => {
 
   it('重複したカードIDを検出する', () => {
     const doc = createValidDocument();
-    doc.cardCatalog.push({ id: 'card_1', name: '重複', imageUrl: '', type: 'monster' });
+    doc.cardCatalog.push({ id: 'card_1', name: '重複', type: 'monster' });
     expect(() => validateComboDocument(doc)).toThrow('重複したID');
   });
 
@@ -105,5 +103,77 @@ describe('validateComboDocument', () => {
       position: { x: 0, y: 0 },
     });
     expect(() => validateComboDocument(doc)).not.toThrow();
+  });
+
+  it('無効な schemaVersion を拒否する', () => {
+    const doc = createValidDocument();
+    (doc as { schemaVersion: unknown }).schemaVersion = '1';
+    expect(() => validateComboDocument(doc)).toThrow();
+  });
+});
+
+function createValidDeckRecord() {
+  return {
+    schemaVersion: 0,
+    deckId: 'deck_1',
+    name: 'テストデッキ',
+    source: { type: 'neuron' as const, deckCode: '' },
+    cards: [{ cardId: 'card_1', quantity: 1, section: 'main' as const }],
+    route: {
+      id: 'route_1',
+      name: 'テストルート',
+      description: '',
+      startingCardIds: ['card_1'],
+      steps: [
+        {
+          id: 'step_1',
+          type: 'action' as const,
+          actions: ['normalSummon'],
+          cardId: 'card_1',
+          relatedCards: [],
+          description: '',
+          position: { x: 0, y: 0 },
+        },
+      ],
+      connections: [],
+      result: { cardIds: ['card_1'], description: '' },
+    },
+  };
+}
+
+describe('validateDeckRecord', () => {
+  it('有効なレコードを検証する', () => {
+    const record = createValidDeckRecord();
+    expect(() => validateDeckRecord(record)).not.toThrow();
+  });
+
+  it('旧 role 値を新しい値に移行する', () => {
+    const record = createValidDeckRecord();
+    record.route.steps[0].relatedCards.push({ cardId: 'card_1', role: 'source' as const });
+    const result = validateDeckRecord(record);
+    expect(result.route.steps[0].relatedCards[0]?.role).toBe('cost');
+  });
+
+  it('存在しないアクションカードを検出する', () => {
+    const record = createValidDeckRecord();
+    record.route.steps[0].cardId = 'card_missing';
+    expect(() => validateDeckRecord(record)).toThrow('カタログに存在しないカード');
+  });
+
+  it('存在しない関連カードを検出する', () => {
+    const record = createValidDeckRecord();
+    record.route.steps[0].relatedCards.push({ cardId: 'card_missing', role: 'cost' });
+    expect(() => validateDeckRecord(record)).toThrow('関連カード');
+  });
+
+  it('過度に深いネストを拒否する', () => {
+    const record = createValidDeckRecord();
+    let nested: Record<string, unknown> = { extra: 'value' };
+    for (let i = 0; i < 200; i++) {
+      const next: Record<string, unknown> = { child: nested };
+      nested = next;
+    }
+    const recordWithExtra = { ...record, extra: nested };
+    expect(() => validateDeckRecord(recordWithExtra)).toThrow('深すぎ');
   });
 });

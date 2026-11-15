@@ -7,7 +7,7 @@ import { CardList } from './CardList';
 const NOTE_TOOL_ID = '__note__';
 
 async function addCard(name: string, type: string) {
-  const id = await useComboStore.getState().addCardToCatalog({ name, type, imageUrl: '' });
+  const id = await useComboStore.getState().addCardToCatalog({ name, type });
   return id;
 }
 

@@ -5,7 +5,6 @@ describe('types', () => {
   it('ActionNodeData 型が使用できる', () => {
     const data: ActionNodeData = {
       cardName: 'カード',
-      imageUrl: '',
       actions: ['draw'],
       cardId: 'c1',
       cardType: 'monster',

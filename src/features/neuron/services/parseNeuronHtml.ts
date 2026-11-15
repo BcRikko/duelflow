@@ -40,13 +40,28 @@ export function detectTypeFromIcon(iconSrc: string): string | null {
 }
 
 /**
- * 保存したニューロンHTMLからインラインイベントハンドラと script タグを除去する。
- * これにより、DOMParser で解析する際や後続の操作中に CSP 違反が発生するのを防ぐ。
+ * 保存したニューロンHTMLから script タグとインラインイベントハンドラを除去する。
+ * DOMParser で解析した後に属性を走査するため、正規表現による回避を防げる。
  */
 export function sanitizeNeuronHtml(html: string): string {
-  return html
-    .replace(/<script\b[\s\S]*?<\/script>/gi, '')
-    .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  const scripts = doc.querySelectorAll('script');
+  for (const script of scripts) {
+    script.remove();
+  }
+
+  const elements = doc.querySelectorAll('*');
+  for (const element of elements) {
+    for (const attr of Array.from(element.attributes)) {
+      if (attr.name.toLowerCase().startsWith('on')) {
+        element.removeAttribute(attr.name);
+      }
+    }
+  }
+
+  return new XMLSerializer().serializeToString(doc);
 }
 
 function extractDeckName(doc: Document): string {
@@ -235,7 +250,7 @@ export function parseNeuronHtml(html: string): ParsedNeuronDeck {
 export function buildComboDocumentFromParsedNeuron(data: ParsedNeuronDeck): ComboDocument {
   const catalogMap = new Map<
     string,
-    { id: string; name: string; imageUrl: string; type: string; description: string }
+    { id: string; name: string; type: string; description: string }
   >();
   const deckEntries: DeckEntry[] = [];
 
@@ -245,7 +260,6 @@ export function buildComboDocumentFromParsedNeuron(data: ParsedNeuronDeck): Comb
         catalogMap.set(card.id, {
           id: card.id,
           name: card.name,
-          imageUrl: '',
           type: card.type,
           description: card.description,
         });

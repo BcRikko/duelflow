@@ -72,18 +72,75 @@ function createMinimalHtml(): string {
 
 describe('sanitizeNeuronHtml', () => {
   it('インラインイベントハンドラを削除する', () => {
-    const html = '<div onclick="alert(1)" onload="alert(2)">test</div>';
-    expect(sanitizeNeuronHtml(html)).toBe('<div>test</div>');
+    const result = sanitizeNeuronHtml('<div onclick="alert(1)" onload="alert(2)">test</div>');
+    expect(result).toContain('<div>test</div>');
+    expect(result).not.toContain('onclick');
+    expect(result).not.toContain('onload');
   });
 
   it('script タグを削除する', () => {
-    const html = '<div><script>alert(1)</script>test</div>';
-    expect(sanitizeNeuronHtml(html)).toBe('<div>test</div>');
+    const result = sanitizeNeuronHtml('<div><script>alert(1)</script>test</div>');
+    expect(result).toContain('<div>test</div>');
+    expect(result).not.toContain('<script');
   });
 
   it('通常の属性は残す', () => {
-    const html = '<img src="./icon.png" alt="icon">';
-    expect(sanitizeNeuronHtml(html)).toBe('<img src="./icon.png" alt="icon">');
+    const result = sanitizeNeuronHtml('<img src="./icon.png" alt="icon">');
+    expect(result).toContain('src="./icon.png"');
+    expect(result).toContain('alt="icon"');
+  });
+
+  it('大文字のイベント属性も削除する', () => {
+    const result = sanitizeNeuronHtml('<div ONCLICK="alert(1)">test</div>');
+    expect(result).toContain('<div>test</div>');
+    expect(result).not.toContain('ONCLICK');
+    expect(result).not.toContain('onclick');
+  });
+
+  it('onerror 属性を削除する', () => {
+    const result = sanitizeNeuronHtml('<img src="x" onerror="alert(1)">');
+    expect(result).toContain('src="x"');
+    expect(result).not.toContain('onerror');
+  });
+
+  it('改行を含むイベント属性を削除する', () => {
+    const result = sanitizeNeuronHtml('<div onclick="\nalert(1)\n">test</div>');
+    expect(result).toContain('<div>test</div>');
+    expect(result).not.toContain('onclick');
+  });
+
+  it('script タグに含まれる改行も除去する', () => {
+    const result = sanitizeNeuronHtml('<div><script>\nalert(1)\n</script>test</div>');
+    expect(result).toContain('<div>test</div>');
+    expect(result).not.toContain('<script');
+  });
+
+  it('複数の script タグを除去する', () => {
+    const result = sanitizeNeuronHtml('<script>alert(1)</script><div>test</div><script>alert(2)</script>');
+    expect(result).toContain('<div>test</div>');
+    expect(result).not.toContain('<script');
+  });
+
+  it('script タグの type 属性は関係なく除去する', () => {
+    const result = sanitizeNeuronHtml('<div><script type="text/javascript">alert(1)</script>test</div>');
+    expect(result).toContain('<div>test</div>');
+    expect(result).not.toContain('<script');
+  });
+
+  it('イベント属性と script タグが混在しても除去する', () => {
+    const result = sanitizeNeuronHtml(
+      '<div onclick="alert(1)"><script>alert(2)</script><span onmouseover="alert(3)">x</span></div>',
+    );
+    expect(result).toContain('<div>');
+    expect(result).toContain('<span>x</span>');
+    expect(result).not.toContain('onclick');
+    expect(result).not.toContain('onmouseover');
+    expect(result).not.toContain('<script');
+  });
+
+  it('不正に閉じられていない属性を含む HTML でもイベントハンドラを削除する', () => {
+    const result = sanitizeNeuronHtml('<div onclick="alert(1) test</div>');
+    expect(result).not.toContain('onclick');
   });
 });
 
@@ -155,7 +212,6 @@ describe('buildComboDocumentFromParsedNeuron', () => {
     expect(doc.cardCatalog[0]).toEqual({
       id: 'neuron_12345',
       name: 'テストモンスター',
-      imageUrl: '',
       type: '効果モンスター',
       description: 'DARK / Level 4 / ATK 1500 / DEF 1000\n\nテスト効果',
     });

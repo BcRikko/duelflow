@@ -18,7 +18,6 @@ describe('ClearRouteButton', () => {
     await useComboStore.getState().addCardToCatalog({
       name: 'Card',
       type: '効果モンスター',
-      imageUrl: '',
     });
     useComboStore.getState().addStepToEnd({
       type: 'action',

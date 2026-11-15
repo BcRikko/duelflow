@@ -1,6 +1,8 @@
 import { useRef } from 'react';
 import { validateDeckRecord } from '../features/combo/model/schema';
 import { useComboStore } from '../features/editor/store/comboStore';
+import { MAX_IMPORT_FILE_SIZE_BYTES } from '../shared/constants';
+import { IconButton } from './IconButton';
 import { ExportIcon, ImportIcon } from './icons';
 import styles from './Header.module.css';
 
@@ -30,6 +32,14 @@ export function ImportExportControls() {
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_IMPORT_FILE_SIZE_BYTES) {
+      alert(`ファイルサイズが大きすぎます（上限 ${MAX_IMPORT_FILE_SIZE_BYTES / 1024 / 1024}MB）`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -66,26 +76,18 @@ export function ImportExportControls() {
         onChange={handleImport}
         className={styles.hidden}
       />
-      <button
-        type="button"
-        className={styles.iconButton}
-        onClick={() => fileInputRef.current?.click()}
+      <IconButton
+        icon={<ImportIcon />}
+        label="展開ファイルの読み込み"
         title="展開ファイルの読み込み"
-        aria-label="展開ファイルの読み込み"
-      >
-        <ImportIcon />
-        <span className={styles.label}>展開ファイルの読み込み</span>
-      </button>
-      <button
-        type="button"
-        className={styles.iconButton}
-        onClick={handleExport}
+        onClick={() => fileInputRef.current?.click()}
+      />
+      <IconButton
+        icon={<ExportIcon />}
+        label="展開ファイルの保存"
         title="展開ファイルの保存"
-        aria-label="展開ファイルの保存"
-      >
-        <ExportIcon />
-        <span className={styles.label}>展開ファイルの保存</span>
-      </button>
+        onClick={handleExport}
+      />
     </div>
   );
 }

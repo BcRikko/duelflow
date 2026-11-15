@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { isSafeImageUrl } from '../../../shared/url';
 
 const positionSchema = z.object({
   x: z.number(),
@@ -100,12 +99,6 @@ export const deckSchema = z.object({
 export const cardSchema = z.object({
   id: z.string(),
   name: z.string(),
-  imageUrl: z
-    .string()
-    .max(2048)
-    .refine(isSafeImageUrl, {
-      message: 'imageUrlは空欄、またはhttp/httpsから始まるURLである必要があります',
-    }),
   type: z.string(),
   description: z.string().optional(),
 });
@@ -199,19 +192,24 @@ export function validateComboDocument(doc: unknown): z.infer<typeof comboDocumen
   return parsed;
 }
 
-function migrateDeckRecordRoles(value: unknown): unknown {
+const MAX_MIGRATION_DEPTH = 100;
+
+function migrateDeckRecordRoles(value: unknown, depth = 0): unknown {
+  if (depth > MAX_MIGRATION_DEPTH) {
+    throw new Error('デッキデータの構造が深すぎます');
+  }
   if (typeof value !== 'object' || value === null) {
     return value;
   }
   if (Array.isArray(value)) {
-    return value.map(migrateDeckRecordRoles);
+    return value.map((item) => migrateDeckRecordRoles(item, depth + 1));
   }
   const obj: Record<string, unknown> = {};
   for (const [key, val] of Object.entries(value)) {
     if (key === 'role' && typeof val === 'string') {
       obj[key] = migrateStepCardRole(val);
     } else {
-      obj[key] = migrateDeckRecordRoles(val);
+      obj[key] = migrateDeckRecordRoles(val, depth + 1);
     }
   }
   return obj;
@@ -235,6 +233,25 @@ export function validateDeckRecord(value: unknown): z.infer<typeof deckRecordSch
       throw new Error(
         `ルート「${route.name}」の接続線「${conn.id}」の接続先ノード「${conn.target}」が存在しません`,
       );
+    }
+  }
+
+  const catalogIds = new Set(parsed.cards.map((entry) => entry.cardId));
+
+  for (const step of route.steps) {
+    if (step.type === 'action') {
+      if (!catalogIds.has(step.cardId)) {
+        throw new Error(
+          `ルート「${route.name}」のノード「${step.id}」でカタログに存在しないカード「${step.cardId}」を参照しています`,
+        );
+      }
+      for (const related of step.relatedCards) {
+        if (!catalogIds.has(related.cardId)) {
+          throw new Error(
+            `ルート「${route.name}」のノード「${step.id}」でカタログに存在しない関連カード「${related.cardId}」を参照しています`,
+          );
+        }
+      }
     }
   }
 

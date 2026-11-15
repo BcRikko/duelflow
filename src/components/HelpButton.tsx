@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { HelpIcon } from './icons';
 import { HelpDialog } from './HelpDialog';
-import styles from './Header.module.css';
+import { IconButton } from './IconButton';
 
 function isTypingTarget(target: EventTarget | null): boolean {
   return (
@@ -28,16 +28,12 @@ export function HelpButton() {
 
   return (
     <>
-      <button
-        type="button"
-        className={styles.iconButton}
-        onClick={() => setIsOpen(true)}
+      <IconButton
+        icon={<HelpIcon />}
+        label="使い方"
         title="使い方 (Shift + ?)"
-        aria-label="使い方"
-      >
-        <HelpIcon />
-        <span className={styles.label}>使い方</span>
-      </button>
+        onClick={() => setIsOpen(true)}
+      />
       {isOpen ? <HelpDialog onClose={() => setIsOpen(false)} /> : null}
     </>
   );

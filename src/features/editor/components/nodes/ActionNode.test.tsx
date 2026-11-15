@@ -8,7 +8,6 @@ import type { ActionNodeData } from './types';
 
 const baseData: ActionNodeData = {
   cardName: 'カードA',
-  imageUrl: '',
   actions: ['normalSummon'],
   cardId: 'card_1',
   cardType: 'monster',

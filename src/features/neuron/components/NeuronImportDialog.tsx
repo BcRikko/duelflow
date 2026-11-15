@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
+import { Dialog } from '../../../components/Dialog';
+import dialogStyles from '../../../components/Dialog.module.css';
 import { useComboStore } from '../../editor/store/comboStore';
 import { parseNeuronHtml } from '../services/parseNeuronHtml';
-import dialogStyles from '../../../components/Dialog.module.css';
 import styles from './NeuronImportDialog.module.css';
 
 type NeuronImportDialogProps = {
@@ -55,11 +56,19 @@ export function NeuronImportDialog({ onClose }: NeuronImportDialogProps) {
   };
 
   return (
-    <div className={dialogStyles.overlay} onClick={onClose}>
-      <div
-        className={`${dialogStyles.dialog} ${dialogStyles.dialogLarge} ${styles.content}`}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Dialog
+      onClose={onClose}
+      footer={
+        <button
+          type="button"
+          className={`${dialogStyles.button} ${dialogStyles.buttonSecondary}`}
+          onClick={onClose}
+        >
+          キャンセル
+        </button>
+      }
+    >
+      <div className={styles.content}>
         <h2>デッキを追加</h2>
 
         <p className={styles.intro}>
@@ -146,17 +155,7 @@ export function NeuronImportDialog({ onClose }: NeuronImportDialogProps) {
             </div>
           </li>
         </ol>
-
-        <div className={dialogStyles.buttons}>
-          <button
-            type="button"
-            className={`${dialogStyles.button} ${dialogStyles.buttonSecondary}`}
-            onClick={onClose}
-          >
-            キャンセル
-          </button>
-        </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

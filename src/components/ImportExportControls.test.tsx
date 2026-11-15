@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useComboStore } from '../features/editor/store/comboStore';
+import { MAX_IMPORT_FILE_SIZE_BYTES } from '../shared/constants';
 import { resetStore } from '../test/helpers';
 import { ImportExportControls } from './ImportExportControls';
 
@@ -79,6 +80,23 @@ describe('ImportExportControls', () => {
     await waitFor(() => {
       expect(useComboStore.getState().currentDeck?.name).toBe('Imported');
     });
+    vi.unstubAllGlobals();
+  });
+
+  it('大きすぎるファイルは読み込まずアラートを表示する', () => {
+    const fileReaderSpy = vi.fn();
+    vi.stubGlobal('FileReader', fileReaderSpy);
+
+    const bigFile = new File(['x'.repeat(MAX_IMPORT_FILE_SIZE_BYTES + 1)], 'big.json', {
+      type: 'application/json',
+    });
+
+    render(<ImportExportControls />);
+    const input = screen.getByTitle('展開ファイルの読み込み').previousElementSibling as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [bigFile] } });
+
+    expect(fileReaderSpy).not.toHaveBeenCalled();
+    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('ファイルサイズ'));
     vi.unstubAllGlobals();
   });
 

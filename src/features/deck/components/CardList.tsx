@@ -1,28 +1,12 @@
 import { useMemo, useState } from 'react';
+import { CardImage } from '../../../components/CardImage';
 import { NoteIcon } from '../../../components/icons';
 import { DropActionToolbar } from '../../editor/components/DropActionToolbar';
 import { useComboStore } from '../../editor/store/comboStore';
-import { useCardImageUrl } from '../../../shared/useCardImageUrl';
-import type { Card } from '../../combo/model/types';
 import { CardForm } from './CardForm';
 import styles from './CardList.module.css';
 
 const NOTE_TOOL_ID = '__note__';
-
-type CardListImageProps = {
-  card: Card;
-};
-
-function CardListImage({ card }: CardListImageProps) {
-  const localImageUrl = useCardImageUrl(card.id, card.name);
-  const src = localImageUrl || card.imageUrl;
-
-  if (src) {
-    return <img src={src} alt={card.name} className={styles.image} />;
-  }
-
-  return <div className={styles.placeholder}>{card.name.charAt(0)}</div>;
-}
 
 export function CardList() {
   const cards = useComboStore((state) => state.cards);
@@ -93,7 +77,12 @@ export function CardList() {
             }}
           >
             <div className={styles.imageWrapper}>
-              <CardListImage card={card} />
+              <CardImage
+                cardId={card.id}
+                cardName={card.name}
+                className={styles.image}
+                placeholderClassName={styles.placeholder}
+              />
             </div>
             <div className={styles.info}>
               <span className={styles.name}>{card.name}</span>

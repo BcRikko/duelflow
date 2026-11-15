@@ -107,7 +107,6 @@ function CanvasContent() {
           position: step.position,
           data: {
             cardName: card?.name ?? '不明なカード',
-            imageUrl: card?.imageUrl ?? '',
             actions: step.actions,
             cardId: step.cardId,
             cardType: detectCardTypeCategory(card?.type ?? ''),
@@ -159,7 +158,6 @@ function CanvasContent() {
             ...node,
             data: {
               cardName: card?.name ?? '不明なカード',
-              imageUrl: card?.imageUrl ?? '',
               actions: step.actions,
               cardId: step.cardId,
               cardType: detectCardTypeCategory(card?.type ?? ''),

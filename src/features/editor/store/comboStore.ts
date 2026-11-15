@@ -152,7 +152,6 @@ function cardRecordToCard(record: CardRecord): Card {
     name: record.name,
     type: record.type,
     description: record.description,
-    imageUrl: '',
   };
 }
 
@@ -848,7 +847,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       const existing = await getCard(card.id);
       if (!existing) {
         await saveCard(card.id, card.name, card.type, { description: card.description });
-        newCards.push({ ...card, imageUrl: card.imageUrl || '' });
+        newCards.push(card);
       }
     }
 
@@ -957,7 +956,7 @@ export const useComboStore = create<ComboState & ComboActions>((set, get) => ({
       set((state) => {
         const cardMap = new Map(state.cards.map((card) => [card.id, card]));
         for (const card of doc.cardCatalog) {
-          cardMap.set(card.id, { ...card, imageUrl: '' });
+          cardMap.set(card.id, card);
         }
         return {
           cards: Array.from(cardMap.values()),

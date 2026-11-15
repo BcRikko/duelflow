@@ -20,7 +20,7 @@ beforeEach(() => {
 });
 
 async function addTestCard(name = 'TestCard') {
-  return useComboStore.getState().addCardToCatalog({ name, imageUrl: '', type: 'monster' });
+  return useComboStore.getState().addCardToCatalog({ name, type: 'monster' });
 }
 
 function getCurrentRoute() {
@@ -456,7 +456,7 @@ describe('ドキュメント入出力', () => {
   });
 
   it('clearAll でドキュメントと履歴がリセットされ、デッキは空になる', async () => {
-    await useComboStore.getState().addCardToCatalog({ name: 'Card', type: '効果モンスター', imageUrl: '' });
+    await useComboStore.getState().addCardToCatalog({ name: 'Card', type: '効果モンスター' });
     useComboStore.getState().selectStep('nonexistent');
     useComboStore.getState().setNodeEditing(true);
 

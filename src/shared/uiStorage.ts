@@ -18,7 +18,7 @@ export function loadUiState(): UiState {
     if (!raw) return { ...defaultUiState };
     const parsed = JSON.parse(raw) as Partial<UiState>;
     return {
-      selectedDeckId: parsed.selectedDeckId ?? null,
+      selectedDeckId: typeof parsed.selectedDeckId === 'string' ? parsed.selectedDeckId : null,
       selection: isValidSelection(parsed.selection) ? parsed.selection : null,
     };
   } catch {

@@ -35,3 +35,8 @@
 .typePresets button:hover {
   background: var(--df-color-border-light);
 }
+
+.fileHint {
+  font-size: var(--df-text-xs);
+  color: var(--df-color-text-secondary);
+}
