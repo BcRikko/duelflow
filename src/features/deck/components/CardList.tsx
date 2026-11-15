@@ -59,8 +59,6 @@ export function CardList() {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      <p className={styles.dragHint}>カードをドラッグ＆ドロップで配置</p>
-
       <DropActionToolbar />
 
       <ul className={styles.list}>

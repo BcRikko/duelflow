@@ -8,6 +8,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     pool: 'vmThreads',
+    exclude: ['tests/vrt/**', 'node_modules', 'dist'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],

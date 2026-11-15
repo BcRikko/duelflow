@@ -1,41 +1,14 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.dialog {
-  background: #fff;
-  border-radius: 8px;
-  width: 720px;
-  max-width: 92%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 32px 40px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  color: #333;
-  font-size: 1rem;
-  line-height: 1.7;
-}
-
-.dialog h2 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0 0 16px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #e0e0e0;
-  color: #111;
+.content h2 {
+  font-size: var(--df-text-lg);
+  font-weight: var(--df-font-semibold);
+  margin: 0 0 var(--df-space-8);
+  padding-bottom: var(--df-space-3);
+  border-bottom: 1px solid var(--df-color-border-light);
+  color: var(--df-color-text-heading);
 }
 
 .intro {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: #333;
-  margin-bottom: 20px;
+  margin-bottom: var(--df-space-10);
 }
 
 .steps {
@@ -48,7 +21,7 @@
 .step {
   position: relative;
   padding-left: 36px;
-  margin-bottom: 24px;
+  margin-bottom: var(--df-space-12);
 }
 
 .step::before {
@@ -60,30 +33,28 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  background: #1976d2;
-  color: #fff;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  border-radius: var(--df-radius-full);
+  background: var(--df-color-primary);
+  color: var(--df-color-bg-surface);
+  font-size: var(--df-text-sm);
+  font-weight: var(--df-font-semibold);
   counter-increment: step;
   content: counter(step);
 }
 
 .stepTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111;
-  margin: 0 0 8px;
+  font-size: var(--df-text-md);
+  font-weight: var(--df-font-semibold);
+  color: var(--df-color-text-heading);
+  margin: 0 0 var(--df-space-4);
 }
 
 .stepDescription {
-  font-size: 1rem;
-  line-height: 1.7;
   color: #444;
 }
 
 .stepDescription > p {
-  margin: 0 0 10px;
+  margin: 0 0 var(--df-space-5);
 }
 
 .stepDescription > p:last-child {
@@ -93,12 +64,11 @@
 .stepList {
   list-style-type: disc;
   padding-left: 1.5rem;
-  margin: 0 0 12px;
+  margin: 0 0 var(--df-space-6);
 }
 
 .stepList > li {
-  font-size: 1rem;
-  margin-bottom: 4px;
+  margin-bottom: var(--df-space-2);
 }
 
 .stepList > li:last-child {
@@ -106,35 +76,35 @@
 }
 
 .stepDescription strong {
-  font-weight: 600;
-  color: #111;
+  font-weight: var(--df-font-semibold);
+  color: var(--df-color-text-heading);
 }
 
 .stepDescription code {
   display: inline-block;
-  padding: 2px 6px;
+  padding: var(--df-space-1) var(--df-space-3);
   background: #f3f3f3;
-  border-radius: 4px;
+  border-radius: var(--df-radius-sm);
   font-family: ui-monospace, Consolas, monospace;
-  font-size: 0.8125rem;
+  font-size: var(--df-text-sm);
   color: #222;
 }
 
 .link {
-  color: #1976d2;
+  color: var(--df-color-primary);
   text-decoration: underline;
 }
 
 .link:hover {
-  color: #1565c0;
+  color: var(--df-color-primary-hover);
 }
 
 .codeBlock {
-  background: #f5f5f5;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 12px;
-  margin: 12px 0 0;
+  background: var(--df-color-bg-code);
+  border: 1px solid var(--df-color-border-light);
+  border-radius: var(--df-radius-md);
+  padding: var(--df-space-6);
+  margin: var(--df-space-6) 0 0;
   overflow-x: auto;
 }
 
@@ -143,7 +113,7 @@
   background: transparent;
   padding: 0;
   font-family: ui-monospace, Consolas, monospace;
-  font-size: 0.8125rem;
+  font-size: var(--df-text-sm);
   line-height: 1.5;
   white-space: pre;
 }
@@ -152,39 +122,17 @@
   display: none;
 }
 
-.buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 28px;
-}
-
-.cancel,
 .import {
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.cancel {
-  background: #fff;
-  color: #333;
-}
-
-.cancel:hover {
-  background: #f0f0f0;
-}
-
-.import {
-  background: #1976d2;
-  color: #fff;
-  border-color: #1976d2;
+  padding: var(--df-space-4) var(--df-space-8);
+  border-radius: var(--df-radius-sm);
+  border: 1px solid var(--df-color-primary);
+  background: var(--df-color-primary);
+  color: var(--df-color-bg-surface);
+  transition: background var(--df-transition-fast);
 }
 
 .import:hover:not(:disabled) {
-  background: #1565c0;
+  background: var(--df-color-primary-hover);
 }
 
 .import:disabled {

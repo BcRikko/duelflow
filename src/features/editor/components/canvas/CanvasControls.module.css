@@ -1,9 +1,9 @@
 .miniMap {
   position: absolute !important;
-  right: 16px;
-  bottom: 16px;
+  right: var(--df-space-8);
+  bottom: var(--df-space-8);
   width: 140px;
   height: 100px;
-  border-radius: 8px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  border-radius: var(--df-radius-lg);
+  box-shadow: var(--df-shadow-md);
 }

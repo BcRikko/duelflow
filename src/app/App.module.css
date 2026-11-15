@@ -11,10 +11,10 @@
 }
 
 .sidebar {
-  width: 280px;
-  min-width: 280px;
-  background: #fff;
-  border-right: 1px solid #ddd;
+  width: var(--df-sidebar-width);
+  min-width: var(--df-sidebar-width);
+  background: var(--df-color-bg-surface);
+  border-right: 1px solid var(--df-color-border-default);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -24,7 +24,7 @@
   flex: 1;
   position: relative;
   overflow: hidden;
-  background: #fafafa;
+  background: var(--df-color-bg-canvas);
 }
 
 .loading {
@@ -32,6 +32,6 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #666;
+  color: var(--df-color-text-secondary);
   font-size: 1.2rem;
 }

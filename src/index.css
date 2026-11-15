@@ -1,3 +1,116 @@
+:root {
+  /* Background */
+  --df-color-bg-body: #f5f5f5;
+  --df-color-bg-surface: #ffffff;
+  --df-color-bg-hover: #f0f0f0;
+  --df-color-bg-active: #e3f2fd;
+  --df-color-bg-code: #f5f5f5;
+  --df-color-bg-canvas: #fafafa;
+  --df-color-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Text */
+  --df-color-text-primary: #333333;
+  --df-color-text-secondary: #666666;
+  --df-color-text-tertiary: #888888;
+  --df-color-text-heading: #111111;
+  --df-color-text-link: #1565c0;
+  --df-color-text-link-hover: #0d47a1;
+  --df-color-text-danger: #d32f2f;
+
+  /* Border */
+  --df-color-border-default: #dddddd;
+  --df-color-border-light: #e0e0e0;
+  --df-color-border-input: #cccccc;
+  --df-color-border-primary: #1976d2;
+
+  /* Accent */
+  --df-color-primary: #1976d2;
+  --df-color-primary-hover: #1565c0;
+  --df-color-primary-light: #e3f2fd;
+
+  --df-color-danger: #d32f2f;
+  --df-color-danger-hover: #b71c1c;
+  --df-color-danger-light: #ffebee;
+
+  --df-color-accent-purple: #863bff;
+  --df-color-accent-purple-text: #4a0dad;
+  --df-color-accent-purple-bg: #faf8ff;
+  --df-color-accent-purple-hover: #ede6ff;
+
+  /* Card type colors */
+  --df-color-type-monster-bg: #fff8e1;
+  --df-color-type-monster-border: #f9a825;
+  --df-color-type-spell-bg: #e8f5e9;
+  --df-color-type-spell-border: #43a047;
+  --df-color-type-trap-bg: #fce4ec;
+  --df-color-type-trap-border: #d81b60;
+  --df-color-type-note-bg: #fff9c4;
+  --df-color-type-note-border: #f9d71c;
+
+  /* Spacing */
+  --df-space-1: 2px;
+  --df-space-2: 4px;
+  --df-space-3: 6px;
+  --df-space-4: 8px;
+  --df-space-5: 10px;
+  --df-space-6: 12px;
+  --df-space-7: 14px;
+  --df-space-8: 16px;
+  --df-space-10: 20px;
+  --df-space-12: 24px;
+  --df-space-16: 32px;
+  --df-space-20: 40px;
+
+  /* Border radius */
+  --df-radius-sm: 4px;
+  --df-radius-md: 6px;
+  --df-radius-lg: 8px;
+  --df-radius-full: 50%;
+
+  /* Typography */
+  --df-text-xs: 0.75rem;
+  --df-text-sm: 0.8125rem;
+  --df-text-base: 0.875rem;
+  --df-text-md: 1rem;
+  --df-text-lg: 1.125rem;
+  --df-text-xl: 1.25rem;
+
+  --df-font-medium: 500;
+  --df-font-semibold: 600;
+  --df-font-bold: 700;
+
+  --df-leading-none: 1;
+  --df-leading-tight: 1.2;
+  --df-leading-normal: 1.4;
+  --df-leading-loose: 1.6;
+  --df-leading-relaxed: 1.7;
+
+  /* Shadows */
+  --df-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.1);
+  --df-shadow-md: 0 3px 8px rgba(0, 0, 0, 0.15);
+  --df-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --df-shadow-xl: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --df-shadow-xxl: 0 4px 20px rgba(0, 0, 0, 0.2);
+  --df-shadow-node: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --df-shadow-editing: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --df-shadow-selected: 0 0 0 3px rgba(25, 118, 210, 0.15);
+  --df-shadow-focus: 0 0 0 2px rgba(25, 118, 210, 0.2);
+
+  /* Z-index */
+  --df-z-floating: 5;
+  --df-z-dropdown: 10;
+  --df-z-modal: 100;
+  --df-z-tooltip: 9999;
+
+  /* Layout */
+  --df-sidebar-width: 280px;
+  --df-node-width: 200px;
+  --df-node-width-action: 240px;
+
+  /* Transition */
+  --df-transition-fast: 0.15s;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -17,8 +130,8 @@ html {
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 1rem;
-  color: #333;
-  background: #f5f5f5;
+  color: var(--df-color-text-primary);
+  background: var(--df-color-bg-body);
 }
 
 button,

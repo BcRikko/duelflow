@@ -1,66 +1,59 @@
 .node {
   position: relative;
-  width: 200px;
+  width: var(--df-node-width);
   min-height: 80px;
-  border-radius: 8px;
-  border: 2px solid #e0e0e0;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: var(--df-radius-lg);
+  border: 2px solid var(--df-color-border-light);
+  background: var(--df-color-bg-surface);
+  box-shadow: var(--df-shadow-node);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px 8px 8px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  gap: var(--df-space-4);
+  padding: var(--df-space-4) var(--df-space-6) var(--df-space-4) var(--df-space-4);
+  transition: border-color var(--df-transition-fast), box-shadow var(--df-transition-fast);
   cursor: move;
-  overflow: visible;
 }
 
 .node.selected {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+  border-color: var(--df-color-primary);
+  box-shadow: var(--df-shadow-selected);
 }
 
 .node.action {
-  width: 240px;
-  background: #fff;
+  width: var(--df-node-width-action);
 }
 
 .node.monster {
-  background: #fff8e1;
-  border-color: #f9a825;
+  background: var(--df-color-type-monster-bg);
+  border-color: var(--df-color-type-monster-border);
 }
 
 .node.spell {
-  background: #e8f5e9;
-  border-color: #43a047;
+  background: var(--df-color-type-spell-bg);
+  border-color: var(--df-color-type-spell-border);
 }
 
 .node.trap {
-  background: #fce4ec;
-  border-color: #d81b60;
-}
-
-.node.unknownType {
-  background: #fff;
-  border-color: #e0e0e0;
+  background: var(--df-color-type-trap-bg);
+  border-color: var(--df-color-type-trap-border);
 }
 
 .node.note {
-  background: #fff9c4;
-  border-color: #f9d71c;
+  background: var(--df-color-type-note-bg);
+  border-color: var(--df-color-type-note-border);
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--df-space-2);
   width: 100%;
 }
 
 .mainInfo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--df-space-4);
   width: 100%;
 }
 
@@ -68,7 +61,7 @@
 .placeholder {
   width: 40px;
   height: 56px;
-  border-radius: 4px;
+  border-radius: var(--df-radius-sm);
   flex-shrink: 0;
   object-fit: cover;
 }
@@ -78,8 +71,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: var(--df-text-lg);
+  font-weight: var(--df-font-semibold);
   color: #999;
 }
 
@@ -88,26 +81,26 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--df-space-1);
 }
 
 .actionLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #1976d2;
+  font-size: var(--df-text-xs);
+  font-weight: var(--df-font-semibold);
+  color: var(--df-color-primary);
 }
 
 .cardName {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1.4;
+  font-size: var(--df-text-sm);
+  font-weight: var(--df-font-bold);
+  line-height: var(--df-leading-normal);
   word-break: break-word;
 }
 
 .description {
-  font-size: 0.75rem;
-  color: #666;
-  line-height: 1.4;
+  font-size: var(--df-text-xs);
+  color: var(--df-color-text-secondary);
+  line-height: var(--df-leading-normal);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -115,24 +108,24 @@
 .relatedCardsList {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 8px;
+  gap: var(--df-space-1) var(--df-space-4);
   width: 100%;
-  font-size: 0.75rem;
+  font-size: var(--df-text-xs);
   color: #555;
-  line-height: 1.3;
+  line-height: var(--df-leading-tight);
 }
 
 .relatedCardItem {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--df-space-1);
   min-width: 0;
 }
 
 .relatedCardRole {
   flex-shrink: 0;
-  font-weight: 600;
-  color: #1976d2;
+  font-weight: var(--df-font-semibold);
+  color: var(--df-color-primary);
 }
 
 .node:hover .deleteButton {
@@ -141,69 +134,66 @@
 
 .deleteButton {
   position: absolute;
-  right: 6px;
-  top: 6px;
+  right: var(--df-space-3);
+  top: var(--df-space-3);
   width: 20px;
   height: 20px;
-  border-radius: 50%;
-  border: 1px solid #d32f2f;
-  background: #fff;
-  color: #d32f2f;
-  font-size: 0.875rem;
-  line-height: 1;
+  border-radius: var(--df-radius-full);
+  border: 1px solid var(--df-color-danger);
+  background: var(--df-color-bg-surface);
+  color: var(--df-color-danger);
+  font-size: var(--df-text-base);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s, background 0.15s;
+  transition: opacity var(--df-transition-fast), background var(--df-transition-fast);
   padding: 0;
 }
 
 .deleteButton:hover {
-  background: #d32f2f;
-  color: #fff;
+  background: var(--df-color-danger);
+  color: var(--df-color-bg-surface);
 }
 
 .editing {
-  z-index: 10;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: var(--df-z-dropdown);
+  box-shadow: var(--df-shadow-editing);
 }
 
 .editForm {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--df-space-3);
 }
 
 .editCardName {
   font-size: 0.9375rem;
-  font-weight: 700;
-  color: #111;
+  font-weight: var(--df-font-bold);
+  color: var(--df-color-text-heading);
   text-align: center;
-  padding: 4px 0;
+  padding: var(--df-space-2) 0;
   word-break: break-word;
 }
 
 .editSelect,
 .editRoleSelect,
 .editCardSelect {
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.8125rem;
-  font-family: inherit;
-  color: #333;
-  background: #fff;
+  padding: var(--df-space-2) var(--df-space-3);
+  border: 1px solid var(--df-color-border-input);
+  border-radius: var(--df-radius-sm);
+  font-size: var(--df-text-sm);
+  color: var(--df-color-text-primary);
+  background: var(--df-color-bg-surface);
 }
 
 .editSelect:focus,
 .editRoleSelect:focus,
 .editCardSelect:focus {
   outline: none;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  border-color: var(--df-color-primary);
+  box-shadow: var(--df-shadow-focus);
 }
 
 @supports (appearance: base-select) {
@@ -211,10 +201,9 @@
   .editRoleSelect,
   .editCardSelect {
     appearance: base-select;
-    padding: 5px 26px 5px 8px;
+    padding: 5px 26px 5px var(--df-space-4);
     border-color: #aaa;
-    font-size: 0.875rem;
-    cursor: pointer;
+    font-size: var(--df-text-base);
   }
 
   .editSelect::picker(select),
@@ -222,11 +211,11 @@
   .editCardSelect::picker(select) {
     appearance: base-select;
     border: 1px solid #aaa;
-    border-radius: 4px;
-    background: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 4px 0;
-    margin-top: 4px;
+    border-radius: var(--df-radius-sm);
+    background: var(--df-color-bg-surface);
+    box-shadow: var(--df-shadow-lg);
+    padding: var(--df-space-2) 0;
+    margin-top: var(--df-space-2);
     max-height: 600px;
     overflow-y: auto;
   }
@@ -234,28 +223,28 @@
   .editSelect option,
   .editRoleSelect option,
   .editCardSelect option {
-    padding: 8px 12px;
-    font-size: 0.875rem;
-    color: #333;
+    padding: var(--df-space-4) var(--df-space-6);
+    font-size: var(--df-text-base);
+    color: var(--df-color-text-primary);
   }
 
   .editSelect option:hover,
   .editRoleSelect option:hover,
   .editCardSelect option:hover {
-    background: #e3f2fd;
+    background: var(--df-color-bg-active);
   }
 
   .editSelect option:checked,
   .editRoleSelect option:checked,
   .editCardSelect option:checked {
-    background: #1976d2;
-    color: #fff;
+    background: var(--df-color-primary);
+    color: var(--df-color-bg-surface);
   }
 
   .editSelect option:checked::checkmark,
   .editRoleSelect option:checked::checkmark,
   .editCardSelect option:checked::checkmark {
-    color: #fff;
+    color: var(--df-color-bg-surface);
   }
 }
 
@@ -265,12 +254,11 @@
 
 .editTextarea {
   width: 100%;
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.8125rem;
-  font-family: inherit;
-  background: #fff;
+  padding: var(--df-space-2) var(--df-space-3);
+  border: 1px solid var(--df-color-border-input);
+  border-radius: var(--df-radius-sm);
+  font-size: var(--df-text-sm);
+  background: var(--df-color-bg-surface);
   resize: none;
   overflow: hidden;
   min-height: 2.5em;
@@ -279,14 +267,14 @@
 .relatedCardsCompact {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 2px;
+  gap: var(--df-space-2);
+  margin-top: var(--df-space-1);
 }
 
 .relatedCardRowCompact {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--df-space-2);
 }
 
 .editRoleSelect {
@@ -301,18 +289,17 @@
 
 .editRemoveButton,
 .editAddButton {
-  padding: 2px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
-  color: #333;
-  font-size: 0.75rem;
-  cursor: pointer;
+  padding: var(--df-space-1) var(--df-space-3);
+  border: 1px solid var(--df-color-border-input);
+  border-radius: var(--df-radius-sm);
+  background: var(--df-color-bg-surface);
+  color: var(--df-color-text-primary);
+  font-size: var(--df-text-xs);
 }
 
 .editRemoveButton {
-  color: #d32f2f;
-  border-color: #d32f2f;
+  color: var(--df-color-danger);
+  border-color: var(--df-color-danger);
 }
 
 .editAddButton {
@@ -322,54 +309,53 @@
 .handle {
   width: 16px;
   height: 16px;
-  background: #999;
-  border: 2px solid #fff;
+  background: var(--df-color-text-tertiary);
+  border: 2px solid var(--df-color-bg-surface);
 }
 
 .node:hover .handle {
-  background: #1976d2;
+  background: var(--df-color-primary);
 }
 
 .noteContent {
   width: 100%;
-  padding: 4px;
+  padding: var(--df-space-2);
 }
 
 .noteLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--df-text-xs);
+  font-weight: var(--df-font-semibold);
   color: #f57f17;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: var(--df-space-2);
 }
 
 .noteText {
-  font-size: 0.75rem;
-  color: #333;
-  margin: 0;
+  font-size: var(--df-text-xs);
+  color: var(--df-color-text-primary);
   word-break: break-word;
   max-height: 60px;
   overflow: hidden;
 }
 
 .actionFieldset {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 6px;
+  border: 1px solid var(--df-color-border-input);
+  border-radius: var(--df-radius-sm);
+  padding: var(--df-space-3);
   margin: 0;
 }
 
 .actionFieldset legend {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--df-text-xs);
+  font-weight: var(--df-font-semibold);
   color: #555;
-  padding: 0 4px;
+  padding: 0 var(--df-space-2);
 }
 
 .actionCheckboxList {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--df-space-2);
   max-height: 120px;
   overflow-y: auto;
 }
@@ -377,9 +363,9 @@
 .actionCheckboxLabel {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: #333;
+  gap: var(--df-space-2);
+  font-size: var(--df-text-xs);
+  color: var(--df-color-text-primary);
   cursor: pointer;
 }
 
@@ -391,83 +377,81 @@
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 9999;
+  z-index: var(--df-z-tooltip);
 }
 
 .cardTooltipContent {
   width: 280px;
   max-height: 360px;
   overflow-y: auto;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  padding: 14px;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: #333;
+  background: var(--df-color-bg-surface);
+  border: 1px solid var(--df-color-border-default);
+  border-radius: var(--df-radius-lg);
+  box-shadow: var(--df-shadow-xxl);
+  padding: var(--df-space-7);
+  font-size: var(--df-text-sm);
+  line-height: var(--df-leading-loose);
+  color: var(--df-color-text-primary);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .tooltipHeader {
   font-size: 0.9375rem;
-  font-weight: 700;
-  color: #111;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #e0e0e0;
+  font-weight: var(--df-font-bold);
+  color: var(--df-color-text-heading);
+  margin-bottom: var(--df-space-4);
+  padding-bottom: var(--df-space-3);
+  border-bottom: 1px solid var(--df-color-border-light);
 }
 
 .tooltipHeader a {
-  color: #1565c0;
+  color: var(--df-color-text-link);
   text-decoration: underline;
   text-underline-offset: 3px;
-  cursor: pointer;
 }
 
 .tooltipHeader a:hover {
-  color: #0d47a1;
+  color: var(--df-color-text-link-hover);
   text-decoration: none;
 }
 
 .tooltipSpecsTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8125rem;
-  margin-bottom: 4px;
+  font-size: var(--df-text-sm);
+  margin-bottom: var(--df-space-1);
 }
 
 .tooltipSpecsTable th,
 .tooltipSpecsTable td {
-  padding: 3px 0;
+  padding: var(--df-space-1) 0;
   vertical-align: top;
   text-align: left;
 }
 
 .tooltipSpecsTable th {
   width: 34%;
-  color: #666;
-  font-weight: 600;
-  padding-right: 8px;
+  color: var(--df-color-text-secondary);
+  font-weight: var(--df-font-semibold);
+  padding-right: var(--df-space-4);
   white-space: nowrap;
 }
 
 .tooltipSpecsTable td {
-  color: #1976d2;
-  font-weight: 600;
+  color: var(--df-color-primary);
+  font-weight: var(--df-font-semibold);
 }
 
 .tooltipDivider {
   height: 1px;
-  background: #e0e0e0;
-  margin: 10px 0;
+  background: var(--df-color-border-light);
+  margin: var(--df-space-5) 0;
 }
 
 .tooltipEffect {
-  font-size: 0.8125rem;
+  font-size: var(--df-text-sm);
   color: #444;
-  line-height: 1.7;
+  line-height: var(--df-leading-relaxed);
   white-space: pre-line;
 }
-

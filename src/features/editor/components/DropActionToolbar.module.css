@@ -1,74 +1,72 @@
 .toolbar {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-  background: #fff;
+  padding: var(--df-space-6);
+  border-bottom: 1px solid var(--df-color-border-default);
+  background: var(--df-color-bg-surface);
   flex-shrink: 0;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--df-space-2);
 }
 
 .label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #666;
+  font-size: var(--df-text-xs);
+  font-weight: var(--df-font-semibold);
+  color: var(--df-color-text-secondary);
 }
 
 .select {
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  color: #333;
-  background: #fff;
+  padding: var(--df-space-3) var(--df-space-4);
+  border: 1px solid var(--df-color-border-input);
+  border-radius: var(--df-radius-sm);
+  font-size: var(--df-text-base);
+  color: var(--df-color-text-primary);
+  background: var(--df-color-bg-surface);
 }
 
 .select:focus {
   outline: none;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  border-color: var(--df-color-primary);
+  box-shadow: var(--df-shadow-focus);
 }
 
 @supports (appearance: base-select) {
   .select {
     appearance: base-select;
-    padding: 6px 28px 6px 10px;
+    padding: var(--df-space-3) 28px var(--df-space-3) var(--df-space-5);
     border-color: #aaa;
-    cursor: pointer;
   }
 
   .select::picker(select) {
     appearance: base-select;
     border: 1px solid #aaa;
-    border-radius: 4px;
-    background: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 4px 0;
-    margin-top: 4px;
+    border-radius: var(--df-radius-sm);
+    background: var(--df-color-bg-surface);
+    box-shadow: var(--df-shadow-lg);
+    padding: var(--df-space-2) 0;
+    margin-top: var(--df-space-2);
     max-height: 600px;
     overflow-y: auto;
   }
 
   .select option {
-    padding: 8px 12px;
-    font-size: 0.875rem;
-    color: #333;
+    padding: var(--df-space-4) var(--df-space-6);
+    font-size: var(--df-text-base);
+    color: var(--df-color-text-primary);
   }
 
   .select option:hover {
-    background: #e3f2fd;
+    background: var(--df-color-bg-active);
   }
 
   .select option:checked {
-    background: #1976d2;
-    color: #fff;
+    background: var(--df-color-primary);
+    color: var(--df-color-bg-surface);
   }
 
   .select option:checked::checkmark {
-    color: #fff;
+    color: var(--df-color-bg-surface);
   }
 }

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: var(--df-space-2);
   pointer-events: none;
 }
 
@@ -11,34 +11,32 @@
 }
 
 .edgeLabel {
-  padding: 4px 8px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  color: #333;
+  padding: var(--df-space-2) var(--df-space-4);
+  background: var(--df-color-bg-surface);
+  border: 1px solid var(--df-color-border-default);
+  border-radius: var(--df-radius-sm);
+  font-size: var(--df-text-xs);
+  color: var(--df-color-text-primary);
   white-space: nowrap;
 }
 
 .edgeDeleteButton {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
-  border: 1px solid #d32f2f;
-  background: #fff;
-  color: #d32f2f;
-  font-size: 0.75rem;
-  line-height: 1;
-  cursor: pointer;
+  border-radius: var(--df-radius-full);
+  border: 1px solid var(--df-color-danger);
+  background: var(--df-color-bg-surface);
+  color: var(--df-color-danger);
+  font-size: var(--df-text-xs);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--df-shadow-sm);
   pointer-events: auto;
 }
 
 .edgeDeleteButton:hover {
-  background: #d32f2f;
-  color: #fff;
+  background: var(--df-color-danger);
+  color: var(--df-color-bg-surface);
 }

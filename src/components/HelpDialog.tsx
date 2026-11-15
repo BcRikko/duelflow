@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import readme from '../../README.md?raw';
+import dialogStyles from './Dialog.module.css';
 import styles from './HelpDialog.module.css';
 
 type HelpDialogProps = {
@@ -21,11 +22,18 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
   }, [onClose]);
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+    <div className={dialogStyles.overlay} onClick={onClose}>
+      <div
+        className={`${dialogStyles.dialog} ${dialogStyles.dialogLarge} ${styles.content}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{readme}</ReactMarkdown>
-        <div className={styles.buttons}>
-          <button type="button" className={styles.close} onClick={onClose}>
+        <div className={dialogStyles.buttons}>
+          <button
+            type="button"
+            className={`${dialogStyles.button} ${dialogStyles.buttonSecondary}`}
+            onClick={onClose}
+          >
             閉じる
           </button>
         </div>

@@ -15,7 +15,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:vrt": "playwright test",
+    "test:vrt:update": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.1",
@@ -27,6 +29,7 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/node": "^26.6.6",

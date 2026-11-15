@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { isSafeImageUrl } from '../../../shared/url';
 import { useComboStore } from '../../editor/store/comboStore';
+import dialogStyles from '../../../components/Dialog.module.css';
 import styles from './CardForm.module.css';
 
 type CardFormProps = {
@@ -40,8 +41,8 @@ export function CardForm({ onClose }: CardFormProps) {
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.dialog}>
+    <div className={dialogStyles.overlay}>
+      <div className={`${dialogStyles.dialog} ${dialogStyles.dialogSmall}`}>
         <h3>カードを追加</h3>
         <form onSubmit={handleSubmit} className={styles.form}>
           <label className={styles.field}>
@@ -83,11 +84,19 @@ export function CardForm({ onClose }: CardFormProps) {
               placeholder="https://..."
             />
           </label>
-          <div className={styles.buttons}>
-            <button type="button" onClick={onClose} className={styles.cancel}>
+          <div className={dialogStyles.buttons}>
+            <button
+              type="button"
+              onClick={onClose}
+              className={`${dialogStyles.button} ${dialogStyles.buttonSecondary}`}
+            >
               キャンセル
             </button>
-            <button type="submit" className={styles.submit} disabled={isSubmitting}>
+            <button
+              type="submit"
+              className={`${dialogStyles.button} ${dialogStyles.buttonPrimary}`}
+              disabled={isSubmitting}
+            >
               追加
             </button>
           </div>
