@@ -12,6 +12,7 @@ export function NodeDeleteButton({ onClick }: Props) {
       onClick={onClick}
       onMouseDown={(e) => e.stopPropagation()}
       title="削除"
+      aria-label="削除"
     >
       ×
     </button>

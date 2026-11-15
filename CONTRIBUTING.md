@@ -22,6 +22,12 @@ pnpm dev
 ## 開発コマンド
 
 ```bash
+# 依存関係をインストール
+pnpm install
+
+# 開発サーバーを起動
+pnpm dev
+
 # Lint
 pnpm lint
 
@@ -39,6 +45,9 @@ pnpm test:coverage
 
 # 本番ビルド
 pnpm build
+
+# VRT
+pnpm test:vrt
 ```
 
 ## プロジェクト構成

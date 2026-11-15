@@ -22,6 +22,15 @@ export const NoteNodeDisplay = memo(function NoteNodeDisplay({
     <div
       className={`${styles.node} ${styles.note} ${selected ? styles.selected : ''}`}
       onClick={onEdit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onEdit();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={hasDescription ? `メモ: ${data.description}` : 'メモ'}
     >
       <NodeHandles />
       <div className={styles.noteContent}>

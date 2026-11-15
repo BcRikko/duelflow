@@ -75,6 +75,8 @@ export function ImportExportControls() {
         accept="application/json"
         onChange={handleImport}
         className={styles.hidden}
+        aria-hidden="true"
+        tabIndex={-1}
       />
       <IconButton
         icon={<ImportIcon />}

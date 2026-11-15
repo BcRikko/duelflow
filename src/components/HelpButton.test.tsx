@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { resetStore } from '../test/helpers';
 import { HelpButton } from './HelpButton';
@@ -13,19 +13,25 @@ describe('HelpButton', () => {
     expect(screen.getByTitle('使い方 (Shift + ?)')).not.toBeNull();
   });
 
-  it('ボタンクリックで使い方ダイアログを開く', () => {
+  it('ボタンクリックで使い方ダイアログを開く', async () => {
     render(<HelpButton />);
     fireEvent.click(screen.getByTitle('使い方 (Shift + ?)'));
-    expect(screen.getByRole('heading', { name: 'DuelFlow' })).not.toBeNull();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'DuelFlow' })).not.toBeNull();
+    }, { timeout: 3000 });
   });
 
-  it('Shift + ? で使い方ダイアログをトグルする', () => {
+  it('Shift + ? で使い方ダイアログをトグルする', async () => {
     render(<HelpButton />);
     fireEvent.keyDown(window, { key: '?', shiftKey: true });
-    expect(screen.getByRole('heading', { name: 'DuelFlow' })).not.toBeNull();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'DuelFlow' })).not.toBeNull();
+    }, { timeout: 3000 });
 
     fireEvent.keyDown(window, { key: '?', shiftKey: true });
-    expect(screen.queryByRole('heading', { name: 'DuelFlow' })).toBeNull();
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'DuelFlow' })).toBeNull();
+    }, { timeout: 3000 });
   });
 
   it('入力中は Shift + ? を無視する', () => {
@@ -40,17 +46,27 @@ describe('HelpButton', () => {
     expect(screen.queryByRole('heading', { name: 'DuelFlow' })).toBeNull();
   });
 
-  it('Escape でダイアログを閉じる', () => {
+  it('Escape でダイアログを閉じる', async () => {
     render(<HelpButton />);
     fireEvent.click(screen.getByTitle('使い方 (Shift + ?)'));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'DuelFlow' })).not.toBeNull();
+    });
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(screen.queryByRole('heading', { name: 'DuelFlow' })).toBeNull();
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'DuelFlow' })).toBeNull();
+    }, { timeout: 3000 });
   });
 
-  it('閉じるボタンでダイアログを閉じる', () => {
+  it('閉じるボタンでダイアログを閉じる', async () => {
     render(<HelpButton />);
     fireEvent.click(screen.getByTitle('使い方 (Shift + ?)'));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'DuelFlow' })).not.toBeNull();
+    }, { timeout: 3000 });
     fireEvent.click(screen.getByText('閉じる'));
-    expect(screen.queryByRole('heading', { name: 'DuelFlow' })).toBeNull();
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'DuelFlow' })).toBeNull();
+    }, { timeout: 3000 });
   });
 });

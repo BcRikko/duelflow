@@ -20,6 +20,10 @@
   line-height: var(--df-leading-relaxed);
 }
 
+.dialog:focus {
+  outline: none;
+}
+
 .dialogLarge {
   width: 720px;
   max-width: 92%;

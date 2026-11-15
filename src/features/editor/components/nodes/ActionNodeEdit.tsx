@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { actionDefinitions } from '../../../../shared/actionDefinitions';
 import { stepCardRoleLabels } from '../../../combo/model/schema';
 import type { StepCardRole } from '../../../combo/model/types';
@@ -18,7 +19,9 @@ type Props = {
 export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected, onSaved }: Props) {
   const updateStep = useComboStore((state) => state.updateStep);
   const setNodeEditing = useComboStore((state) => state.setNodeEditing);
-  const cards = useComboStore((state) => state.cards);
+  const cardNames = useComboStore(
+    useShallow((state) => Object.fromEntries(state.cards.map((c) => [c.id, c.name]))),
+  );
   const nodeRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -91,17 +94,18 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
 
   const addRelatedCard = useCallback(() => {
     setDraft((prev) => {
+      const firstCardId = Object.keys(cardNames)[0] ?? '';
       const next = {
         ...prev,
         relatedCards: [
           ...prev.relatedCards,
-          { cardId: cards[0]?.id ?? '', role: 'cost' as StepCardRole },
+          { cardId: firstCardId, role: 'cost' as StepCardRole },
         ],
       };
       draftRef.current = next;
       return next;
     });
-  }, [cards]);
+  }, [cardNames]);
 
   const updateRelatedCard = useCallback(
     (index: number, cardId?: string, role?: StepCardRole) => {
@@ -184,9 +188,9 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
                 value={related.cardId}
                 onChange={(e) => updateRelatedCard(index, e.target.value)}
               >
-                {cards.map((card) => (
-                  <option key={card.id} value={card.id}>
-                    {card.name}
+                {Object.entries(cardNames).map(([cardId, name]) => (
+                  <option key={cardId} value={cardId}>
+                    {name}
                   </option>
                 ))}
               </select>
@@ -200,7 +204,7 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
               </button>
             </div>
           ))}
-          {cards.length > 0 ? (
+          {Object.keys(cardNames).length > 0 ? (
             <button type="button" className={styles.editAddButton} onClick={addRelatedCard}>
               + 関連カード
             </button>

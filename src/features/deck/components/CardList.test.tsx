@@ -40,9 +40,9 @@ describe('CardList', () => {
 
   it('メモのドラッグ開始時にnoteデータを設定する', () => {
     render(<CardList />);
-    const note = screen.getByTitle('メモ').closest('li');
+    const note = screen.getByTitle('メモ');
     const dataTransfer = { setData: vi.fn(), effectAllowed: '' };
-    fireEvent.dragStart(note!, { dataTransfer });
+    fireEvent.dragStart(note, { dataTransfer });
     expect(dataTransfer.setData).toHaveBeenCalledWith('application/duelflow-note', '1');
   });
 
@@ -97,7 +97,7 @@ describe('CardList', () => {
     const id = await addCard('カードA', 'モンスター');
     setCurrentDeckCards([id]);
     render(<CardList />);
-    const card = screen.getByText('カードA').closest('li');
+    const card = screen.getByText('カードA').closest('button');
     const dataTransfer = { setData: vi.fn(), effectAllowed: '' };
     fireEvent.dragStart(card!, { dataTransfer });
     expect(dataTransfer.setData).toHaveBeenCalledWith('application/duelflow-card', expect.any(String));

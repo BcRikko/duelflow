@@ -103,4 +103,9 @@
   white-space: nowrap;
 }
 
+.loading {
+  padding: 24px 0;
+  text-align: center;
+  color: #666;
+}
 

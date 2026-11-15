@@ -13,6 +13,7 @@ export const EditableEdge = memo(function EditableEdge({
   targetPosition,
   label,
   selected,
+  style,
 }: EdgeProps) {
   const deleteConnection = useComboStore((state) => state.deleteConnection);
 
@@ -32,7 +33,7 @@ export const EditableEdge = memo(function EditableEdge({
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} />
+      <BaseEdge id={id} path={edgePath} style={style} />
       <EdgeLabelRenderer>
         <div
           className={`${styles.edgeLabelContainer} ${selected ? styles.selected : ''}`}
@@ -49,6 +50,7 @@ export const EditableEdge = memo(function EditableEdge({
               onClick={handleDelete}
               onMouseDown={(e) => e.stopPropagation()}
               title="接続線を削除"
+              aria-label="接続線を削除"
             >
               ×
             </button>

@@ -134,7 +134,10 @@ function CanvasContent() {
         target: conn.target,
         label: conn.label,
         type: 'editableEdge',
-        style: { stroke: conn.label ? '#1976d2' : '#999', strokeWidth: conn.label ? 2 : 1 },
+        style: {
+          stroke: conn.label ? '#1976d2' : '#999',
+          strokeWidth: conn.label ? 2 : 1,
+        },
       });
     }
 

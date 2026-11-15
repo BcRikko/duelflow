@@ -248,9 +248,18 @@ export const ActionNodeDisplay = memo(function ActionNodeDisplay({
       ref={nodeRef}
       className={`${styles.node} ${styles.action} ${getTypeClass(data.cardType)} ${selected ? styles.selected : ''}`}
       onClick={onEdit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onEdit();
+        }
+      }}
       onMouseEnter={showTooltip}
       onMouseLeave={scheduleHide}
       onPointerDown={hideTooltip}
+      role="button"
+      tabIndex={0}
+      aria-label={`アクション: ${data.cardName}`}
     >
       <NodeHandles />
       <div className={styles.content}>

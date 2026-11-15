@@ -47,10 +47,14 @@
   display: flex;
   align-items: center;
   gap: var(--df-space-4);
+  width: 100%;
   padding: var(--df-space-4);
   border: 1px solid var(--df-color-border-light);
   border-radius: var(--df-radius-md);
   background: var(--df-color-bg-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: grab;
   transition: background var(--df-transition-fast);
 }
