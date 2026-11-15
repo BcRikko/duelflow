@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { getActionLabels } from '../../../../shared/actionDefinitions';
 import { stepCardRoleLabels } from '../../../combo/model/schema';
 import type { StepCardRole } from '../../../combo/model/types';
@@ -198,7 +199,9 @@ export const ActionNodeDisplay = memo(function ActionNodeDisplay({
   onEdit,
   onDelete,
 }: Props) {
-  const cards = useComboStore((state) => state.cards);
+  const cardNames = useComboStore(
+    useShallow((state) => Object.fromEntries(state.cards.map((c) => [c.id, c.name]))),
+  );
   const nodeRef = useRef<HTMLDivElement>(null);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
@@ -261,15 +264,12 @@ export const ActionNodeDisplay = memo(function ActionNodeDisplay({
         </div>
         {data.relatedCards.length > 0 ? (
           <div className={styles.relatedCardsList}>
-            {data.relatedCards.map((related, index) => {
-              const card = cards.find((c) => c.id === related.cardId);
-              return (
-                <span key={index} className={styles.relatedCardItem}>
-                  <span className={styles.relatedCardRole}>{roleLabels[related.role]}</span>
-                  {card?.name ?? related.cardId}
-                </span>
-              );
-            })}
+            {data.relatedCards.map((related, index) => (
+              <span key={index} className={styles.relatedCardItem}>
+                <span className={styles.relatedCardRole}>{roleLabels[related.role]}</span>
+                {cardNames[related.cardId] ?? related.cardId}
+              </span>
+            ))}
           </div>
         ) : null}
       </div>

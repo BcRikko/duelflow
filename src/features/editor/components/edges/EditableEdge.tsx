@@ -1,8 +1,9 @@
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, type EdgeProps } from '@xyflow/react';
+import { memo } from 'react';
 import { useComboStore } from '../../store/comboStore';
 import styles from './Edge.module.css';
 
-export function EditableEdge({
+export const EditableEdge = memo(function EditableEdge({
   id,
   sourceX,
   sourceY,
@@ -56,4 +57,4 @@ export function EditableEdge({
       </EdgeLabelRenderer>
     </>
   );
-}
+});

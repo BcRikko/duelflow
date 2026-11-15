@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { seedTestData } from './helpers';
+import { clearTestData, seedTestData } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await clearTestData(page);
+  await page.reload();
 });
 
 test('empty deck announcement', async ({ page }) => {
@@ -30,4 +32,18 @@ test('node edit form', async ({ page }) => {
   await node.dblclick();
   await expect(page.locator('textarea')).toBeVisible();
   await expect(page).toHaveScreenshot('node-edit-form.png');
+});
+
+test('card form', async ({ page }) => {
+  await seedTestData(page);
+  await page.reload();
+  await page.getByText('+ 追加').click();
+  await expect(page.getByRole('heading', { name: 'カードを追加' })).toBeVisible();
+  await expect(page).toHaveScreenshot('card-form.png');
+});
+
+test('import deck dialog', async ({ page }) => {
+  await page.getByRole('main').getByRole('button', { name: 'デッキを追加' }).click();
+  await expect(page.getByRole('heading', { name: 'デッキを追加' })).toBeVisible();
+  await expect(page).toHaveScreenshot('import-deck-dialog.png');
 });

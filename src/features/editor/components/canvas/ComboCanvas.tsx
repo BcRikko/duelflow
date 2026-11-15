@@ -57,6 +57,8 @@ function CanvasContent() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
+  const cardMap = useMemo(() => new Map(cardCatalog.map((c) => [c.id, c])), [cardCatalog]);
+
   const structureKey = useMemo(
     () =>
       route
@@ -92,8 +94,6 @@ function CanvasContent() {
       setEdges([]);
       return;
     }
-
-    const cardMap = new Map(cardCatalog.map((c) => [c.id, c]));
 
     const rfNodes: Node[] = [];
     const rfEdges: Edge[] = [];
@@ -145,8 +145,6 @@ function CanvasContent() {
   // Data sync effect: update node data and edge labels when step/connection data changes
   // without changing positions
   useEffect(() => {
-    const cardMap = new Map(cardCatalog.map((c) => [c.id, c]));
-
     setNodes((current) =>
       current.map((node) => {
         const step = route?.steps.find((s) => s.id === node.id);
@@ -154,26 +152,36 @@ function CanvasContent() {
 
         if (step.type === 'action') {
           const card = cardMap.get(step.cardId);
-          return {
-            ...node,
-            data: {
-              cardName: card?.name ?? '不明なカード',
-              actions: step.actions,
-              cardId: step.cardId,
-              cardType: detectCardTypeCategory(card?.type ?? ''),
-              description: step.description,
-              cardDescription: card?.description,
-              relatedCards: step.relatedCards,
-            },
+          const nextData = {
+            cardName: card?.name ?? '不明なカード',
+            actions: step.actions,
+            cardId: step.cardId,
+            cardType: detectCardTypeCategory(card?.type ?? ''),
+            description: step.description,
+            cardDescription: card?.description,
+            relatedCards: step.relatedCards,
           };
+          const prevData = node.data as typeof nextData;
+          if (
+            prevData.cardName === nextData.cardName &&
+            prevData.cardId === nextData.cardId &&
+            prevData.cardType === nextData.cardType &&
+            prevData.description === nextData.description &&
+            prevData.cardDescription === nextData.cardDescription &&
+            JSON.stringify(prevData.actions) === JSON.stringify(nextData.actions) &&
+            JSON.stringify(prevData.relatedCards) === JSON.stringify(nextData.relatedCards)
+          ) {
+            return node;
+          }
+          return { ...node, data: nextData };
         }
 
-        return {
-          ...node,
-          data: {
-            description: step.description,
-          },
-        };
+        const nextData = { description: step.description };
+        const prevData = node.data as typeof nextData;
+        if (prevData.description === nextData.description) {
+          return node;
+        }
+        return { ...node, data: nextData };
       }),
     );
 
@@ -181,14 +189,21 @@ function CanvasContent() {
       current.map((edge) => {
         const conn = route?.connections.find((c) => c.id === edge.id);
         if (!conn) return edge;
+        const nextStyle = {
+          stroke: conn.label ? '#1976d2' : '#999',
+          strokeWidth: conn.label ? 2 : 1,
+        };
+        if (edge.label === conn.label && JSON.stringify(edge.style) === JSON.stringify(nextStyle)) {
+          return edge;
+        }
         return {
           ...edge,
           label: conn.label,
-          style: { stroke: conn.label ? '#1976d2' : '#999', strokeWidth: conn.label ? 2 : 1 },
+          style: nextStyle,
         };
       }),
     );
-  }, [route, cardCatalog, setNodes, setEdges]);
+  }, [route, cardMap, setNodes, setEdges]);
 
   // Selection effect: update selected flags without changing positions
   useEffect(() => {

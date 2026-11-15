@@ -4,6 +4,18 @@ export const TEST_CARD_ID = 'vrt_card_1';
 export const TEST_DECK_ID = 'vrt_deck_1';
 export const TEST_STEP_ID = 'vrt_step_1';
 
+export async function clearTestData(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    await new Promise<void>((resolve) => {
+      const request = indexedDB.deleteDatabase('duelflow');
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+      request.onblocked = () => resolve();
+    });
+    localStorage.removeItem('duelflow-ui-v0');
+  });
+}
+
 export async function seedTestData(page: Page): Promise<void> {
   await page.evaluate(async () => {
     await new Promise<void>((resolve) => {
