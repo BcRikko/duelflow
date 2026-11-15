@@ -177,6 +177,15 @@
   gap: 6px;
 }
 
+.editCardName {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #111;
+  text-align: center;
+  padding: 4px 0;
+  word-break: break-word;
+}
+
 .editSelect,
 .editRoleSelect,
 .editCardSelect {
@@ -408,6 +417,18 @@
   margin-bottom: 8px;
   padding-bottom: 6px;
   border-bottom: 1px solid #e0e0e0;
+}
+
+.tooltipHeader a {
+  color: #1565c0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.tooltipHeader a:hover {
+  color: #0d47a1;
+  text-decoration: none;
 }
 
 .tooltipSpecsTable {

@@ -28,16 +28,22 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
     description: data.description ?? '',
     relatedCards: data.relatedCards,
   });
+  const draftRef = useRef(draft);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
 
   const save = useCallback(() => {
+    const current = draftRef.current;
     updateStep(id, {
-      actions: draft.actions,
-      cardId: draft.cardId,
-      description: draft.description || undefined,
-      relatedCards: draft.relatedCards,
+      actions: current.actions,
+      cardId: current.cardId,
+      description: current.description || undefined,
+      relatedCards: current.relatedCards,
     });
     onSaved();
-  }, [draft, id, onSaved, updateStep]);
+  }, [id, onSaved, updateStep]);
 
   useEffect(() => {
     setNodeEditing(true);
@@ -53,7 +59,11 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
-      if (nodeRef.current && !nodeRef.current.contains(e.target as Node)) {
+      const target = e.target as Element | null;
+      if (!target) return;
+      // 選択肢をクリックしたときに未保存の変更が確定してしまうのを防ぐ
+      if (target.closest?.('select, option, optgroup')) return;
+      if (nodeRef.current && !nodeRef.current.contains(target)) {
         save();
       }
     };
@@ -66,26 +76,31 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
       const actions = prev.actions.includes(action)
         ? prev.actions.filter((a) => a !== action)
         : [...prev.actions, action];
-      return { ...prev, actions };
+      const next = { ...prev, actions };
+      draftRef.current = next;
+      return next;
     });
   }, []);
-  const updateCardId = useCallback(
-    (cardId: string) => setDraft((prev) => ({ ...prev, cardId })),
-    [],
-  );
-  const updateDescription = useCallback(
-    (description: string) => setDraft((prev) => ({ ...prev, description })),
-    [],
-  );
+  const updateDescription = useCallback((description: string) => {
+    setDraft((prev) => {
+      const next = { ...prev, description };
+      draftRef.current = next;
+      return next;
+    });
+  }, []);
 
   const addRelatedCard = useCallback(() => {
-    setDraft((prev) => ({
-      ...prev,
-      relatedCards: [
-        ...prev.relatedCards,
-        { cardId: cards[0]?.id ?? '', role: 'cost' as StepCardRole },
-      ],
-    }));
+    setDraft((prev) => {
+      const next = {
+        ...prev,
+        relatedCards: [
+          ...prev.relatedCards,
+          { cardId: cards[0]?.id ?? '', role: 'cost' as StepCardRole },
+        ],
+      };
+      draftRef.current = next;
+      return next;
+    });
   }, [cards]);
 
   const updateRelatedCard = useCallback(
@@ -94,17 +109,23 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
         const updated = [...prev.relatedCards];
         if (cardId !== undefined) updated[index] = { ...updated[index], cardId };
         if (role !== undefined) updated[index] = { ...updated[index], role };
-        return { ...prev, relatedCards: updated };
+        const next = { ...prev, relatedCards: updated };
+        draftRef.current = next;
+        return next;
       });
     },
     [],
   );
 
   const removeRelatedCard = useCallback((index: number) => {
-    setDraft((prev) => ({
-      ...prev,
-      relatedCards: prev.relatedCards.filter((_, i) => i !== index),
-    }));
+    setDraft((prev) => {
+      const next = {
+        ...prev,
+        relatedCards: prev.relatedCards.filter((_, i) => i !== index),
+      };
+      draftRef.current = next;
+      return next;
+    });
   }, []);
 
   const handleClick = useCallback((e: React.MouseEvent) => e.stopPropagation(), []);
@@ -119,6 +140,7 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
     >
       <NodeHandles />
       <div className={styles.editForm}>
+        <div className={styles.editCardName}>{data.cardName}</div>
         <fieldset className={styles.actionFieldset}>
           <legend>アクション</legend>
           <div className={styles.actionCheckboxList}>
@@ -135,17 +157,6 @@ export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected,
             ))}
           </div>
         </fieldset>
-        <select
-          className={styles.editSelect}
-          value={draft.cardId}
-          onChange={(e) => updateCardId(e.target.value)}
-        >
-          {cards.map((card) => (
-            <option key={card.id} value={card.id}>
-              {card.name}
-            </option>
-          ))}
-        </select>
         <textarea
           ref={textareaRef}
           className={styles.editTextarea}

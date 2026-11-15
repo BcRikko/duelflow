@@ -134,20 +134,29 @@ function SpecTable({ parsed }: { parsed: ParsedCardDescription }) {
   );
 }
 
+function buildCardSearchUrl(cardId: string): string | null {
+  const match = cardId.match(/^neuron_(\d+)$/);
+  if (!match) return null;
+  return `https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=${match[1]}&request_locale=ja`;
+}
+
 function CardDescriptionTooltip({
   name,
+  cardId,
   description,
   position,
   onMouseEnter,
   onMouseLeave,
 }: {
   name: string;
+  cardId: string;
   description: string;
   position: TooltipPosition;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }) {
   const parsed = parseStructuredDescription(description);
+  const searchUrl = buildCardSearchUrl(cardId);
 
   return createPortal(
     <div
@@ -157,7 +166,21 @@ function CardDescriptionTooltip({
       onMouseLeave={onMouseLeave}
     >
       <div className={styles.cardTooltipContent}>
-        <div className={styles.tooltipHeader}>{name}</div>
+        <div className={styles.tooltipHeader}>
+          {searchUrl ? (
+            <a
+              href={searchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              {name}
+            </a>
+          ) : (
+            name
+          )}
+        </div>
         <SpecTable parsed={parsed} />
         {parsed.effect ? <div className={styles.tooltipDivider} /> : null}
         {parsed.effect ? (
@@ -207,6 +230,12 @@ export const ActionNodeDisplay = memo(function ActionNodeDisplay({
     setIsTooltipVisible(true);
   };
 
+  const hideTooltip = () => {
+    clearHideTimer();
+    setIsTooltipVisible(false);
+    setTooltipPosition(null);
+  };
+
   useEffect(() => {
     return () => clearHideTimer();
   }, []);
@@ -218,6 +247,7 @@ export const ActionNodeDisplay = memo(function ActionNodeDisplay({
       onClick={onEdit}
       onMouseEnter={showTooltip}
       onMouseLeave={scheduleHide}
+      onPointerDown={hideTooltip}
     >
       <NodeHandles />
       <div className={styles.content}>
@@ -247,6 +277,7 @@ export const ActionNodeDisplay = memo(function ActionNodeDisplay({
       {isTooltipVisible && tooltipPosition ? (
         <CardDescriptionTooltip
           name={data.cardName}
+          cardId={data.cardId}
           description={data.cardDescription ?? ''}
           position={tooltipPosition}
           onMouseEnter={clearHideTimer}
