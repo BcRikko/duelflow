@@ -9,6 +9,7 @@ import {
 } from '../../../../shared/cardDatabase';
 import { generateId } from '../../../../shared/id';
 import { saveUiState } from '../../../../shared/uiStorage';
+import { MAX_IMAGE_FILE_SIZE_BYTES } from '../../../../shared/constants';
 import type { Card, Connection, Step } from '../../../combo/model/types';
 import { buildComboDocumentFromParsedNeuron } from '../../../neuron/services/parseNeuronHtml';
 import type { ParsedNeuronDeck } from '../../../neuron/services/parseNeuronHtml';
@@ -112,7 +113,10 @@ export const createDeckSlice: StateCreator<
     if (state.currentDeck?.deckId !== deckId) {
       void getDeck(deckId).then((record) => {
         if (record) {
-          void saveDeck({ ...record, name: trimmed });
+          void saveDeck({ ...record, name: trimmed }).catch((error) => {
+            // eslint-disable-next-line no-console
+            console.error('Failed to rename deck in IndexedDB:', error);
+          });
         }
       });
     }
@@ -559,6 +563,11 @@ export const createDeckSlice: StateCreator<
         const basename = extractBasename(imageSrc);
         if (basename) {
           file = findImageFile(basename, imageFileMap);
+          if (file && file.size > MAX_IMAGE_FILE_SIZE_BYTES) {
+            // eslint-disable-next-line no-console
+            console.warn(`[importNeuronHtml] 画像ファイルが大きすぎるためスキップします: ${basename}`);
+            file = undefined;
+          }
           if (!file) {
             // eslint-disable-next-line no-console
             console.warn(`[importNeuronHtml] 画像ファイルが見つかりません: ${basename}`);

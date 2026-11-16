@@ -55,7 +55,12 @@ export const createCardCatalogSlice: StateCreator<
       const current = state.cards.find((c) => c.id === id);
       if (!current) return {};
       const next = { ...current, ...updates };
-      void saveCard(id, next.name, next.type, { file: imageFile, description: next.description });
+      void saveCard(id, next.name, next.type, { file: imageFile, description: next.description }).catch(
+        (error) => {
+          // eslint-disable-next-line no-console
+          console.error('Failed to update card in IndexedDB:', error);
+        },
+      );
       return {
         cards: state.cards.map((card) => (card.id === id ? next : card)),
       };
@@ -70,29 +75,44 @@ export const createCardCatalogSlice: StateCreator<
 
     for (const deck of deckRecords) {
       const hasCardInEntries = deck.cards.some((entry) => entry.cardId === id);
-      const hasCardInRoute = deck.route.steps.some(
-        (step) =>
-          step.type === 'action' &&
-          (step.cardId === id || step.relatedCards.some((related) => related.cardId === id)),
+
+      const stepIdsToRemove = new Set(
+        deck.route.steps
+          .filter((step) => step.type === 'action' && step.cardId === id)
+          .map((step) => step.id),
       );
 
-      if (!hasCardInEntries && !hasCardInRoute) continue;
+      const hasRelatedCardReference = deck.route.steps.some(
+        (step) =>
+          step.type === 'action' &&
+          !stepIdsToRemove.has(step.id) &&
+          step.relatedCards.some((related) => related.cardId === id),
+      );
+
+      if (!hasCardInEntries && stepIdsToRemove.size === 0 && !hasRelatedCardReference) continue;
 
       const updatedDeck: DeckRecord = {
         ...deck,
         cards: hasCardInEntries ? deck.cards.filter((entry) => entry.cardId !== id) : deck.cards,
-        route: hasCardInRoute
-          ? {
-              ...deck.route,
-              steps: deck.route.steps.map((step) => {
-                if (step.type !== 'action') return step;
-                return {
-                  ...step,
-                  relatedCards: step.relatedCards.filter((related) => related.cardId !== id),
-                };
-              }),
-            }
-          : deck.route,
+        route:
+          stepIdsToRemove.size > 0 || hasRelatedCardReference
+            ? {
+                ...deck.route,
+                steps: deck.route.steps
+                  .filter((step) => !stepIdsToRemove.has(step.id))
+                  .map((step) => {
+                    if (step.type !== 'action') return step;
+                    return {
+                      ...step,
+                      relatedCards: step.relatedCards.filter((related) => related.cardId !== id),
+                    };
+                  }),
+                connections: deck.route.connections.filter(
+                  (conn) =>
+                    !stepIdsToRemove.has(conn.source) && !stepIdsToRemove.has(conn.target),
+                ),
+              }
+            : deck.route,
       };
 
       await saveDeck(updatedDeck);

@@ -67,6 +67,30 @@ describe('カードカタログ', () => {
     expect(step?.type === 'action' ? step.relatedCards : []).toHaveLength(0);
     expect(useComboStore.getState().currentDeck?.cards.some((c) => c.cardId === relatedCardId)).toBe(false);
   });
+
+  it('カードを削除すると、そのカードを主カードとするステップと接続線も削除される', async () => {
+    const cardId = await addTestCard();
+    const nextCardId = await addTestCard('Next');
+
+    const stepId = useComboStore.getState().addStepToEnd({
+      type: 'action',
+      actions: ['normalSummon'],
+      cardId,
+      relatedCards: [],
+    });
+    const nextStepId = useComboStore.getState().addStepToEnd({
+      type: 'action',
+      actions: ['draw'],
+      cardId: nextCardId,
+      relatedCards: [],
+    });
+
+    await useComboStore.getState().removeCardFromCatalog(cardId);
+
+    expect(getCurrentRoute().steps.some((s) => s.id === stepId)).toBe(false);
+    expect(getCurrentRoute().steps.some((s) => s.id === nextStepId)).toBe(true);
+    expect(getCurrentRoute().connections.some((c) => c.source === stepId || c.target === stepId)).toBe(false);
+  });
 });
 
 describe('ルート管理', () => {
