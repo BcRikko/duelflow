@@ -180,12 +180,15 @@
 .editSelect,
 .editRoleSelect,
 .editCardSelect {
-  padding: var(--df-space-2) var(--df-space-3);
+  height: 2rem;
+  padding: 0 var(--df-space-6) 0 var(--df-space-2);
   border: 1px solid var(--df-color-border-input);
   border-radius: var(--df-radius-sm);
-  font-size: var(--df-text-sm);
+  font-size: var(--df-text-xs);
+  line-height: var(--df-leading-none);
   color: var(--df-color-text-primary);
   background: var(--df-color-bg-surface);
+  white-space: nowrap;
 }
 
 .editSelect:focus,
@@ -194,58 +197,6 @@
   outline: none;
   border-color: var(--df-color-primary);
   box-shadow: var(--df-shadow-focus);
-}
-
-@supports (appearance: base-select) {
-  .editSelect,
-  .editRoleSelect,
-  .editCardSelect {
-    appearance: base-select;
-    padding: 5px 26px 5px var(--df-space-4);
-    border-color: #aaa;
-    font-size: var(--df-text-base);
-  }
-
-  .editSelect::picker(select),
-  .editRoleSelect::picker(select),
-  .editCardSelect::picker(select) {
-    appearance: base-select;
-    border: 1px solid #aaa;
-    border-radius: var(--df-radius-sm);
-    background: var(--df-color-bg-surface);
-    box-shadow: var(--df-shadow-lg);
-    padding: var(--df-space-2) 0;
-    margin-top: var(--df-space-2);
-    max-height: 600px;
-    overflow-y: auto;
-  }
-
-  .editSelect option,
-  .editRoleSelect option,
-  .editCardSelect option {
-    padding: var(--df-space-4) var(--df-space-6);
-    font-size: var(--df-text-base);
-    color: var(--df-color-text-primary);
-  }
-
-  .editSelect option:hover,
-  .editRoleSelect option:hover,
-  .editCardSelect option:hover {
-    background: var(--df-color-bg-active);
-  }
-
-  .editSelect option:checked,
-  .editRoleSelect option:checked,
-  .editCardSelect option:checked {
-    background: var(--df-color-primary);
-    color: var(--df-color-bg-surface);
-  }
-
-  .editSelect option:checked::checkmark,
-  .editRoleSelect option:checked::checkmark,
-  .editCardSelect option:checked::checkmark {
-    color: var(--df-color-bg-surface);
-  }
 }
 
 .editSelect {
@@ -278,7 +229,9 @@
 }
 
 .editRoleSelect {
-  width: 80px;
+  width: auto;
+  min-width: 4.5rem;
+  max-width: 40%;
   flex-shrink: 0;
 }
 
@@ -289,12 +242,14 @@
 
 .editRemoveButton,
 .editAddButton {
-  padding: var(--df-space-1) var(--df-space-3);
+  height: 2rem;
+  padding: 0 var(--df-space-2);
   border: 1px solid var(--df-color-border-input);
   border-radius: var(--df-radius-sm);
   background: var(--df-color-bg-surface);
   color: var(--df-color-text-primary);
   font-size: var(--df-text-xs);
+  white-space: nowrap;
 }
 
 .editRemoveButton {
@@ -333,8 +288,9 @@
 .noteText {
   font-size: var(--df-text-xs);
   color: var(--df-color-text-primary);
+  white-space: pre-wrap;
   word-break: break-word;
-  max-height: 60px;
+  max-height: 120px;
   overflow: hidden;
 }
 

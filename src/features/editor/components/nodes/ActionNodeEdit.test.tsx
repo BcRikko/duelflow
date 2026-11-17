@@ -7,16 +7,18 @@ import { resetStore } from '../../../../test/helpers';
 import { ActionNodeEdit } from './ActionNodeEdit';
 import type { ActionNodeData } from './types';
 
-const baseData: ActionNodeData = {
-  cardName: 'ブラック・マジシャン',
-  actions: ['normalSummon'],
-  cardId: 'card_1',
-  cardType: 'monster',
-  description: '説明',
-  relatedCards: [],
-};
+function createBaseData(cardId = 'card_1'): ActionNodeData {
+  return {
+    cardName: 'ブラック・マジシャン',
+    actions: ['normalSummon'],
+    cardId,
+    cardType: 'monster',
+    description: '説明',
+    relatedCards: [],
+  };
+}
 
-function renderNode(data = baseData, onSaved = vi.fn()) {
+function renderNode(data = createBaseData(), onSaved = vi.fn()) {
   return render(
     <ReactFlowProvider>
       <ActionNodeEdit id="step_1" data={data} onSaved={onSaved} />
@@ -24,7 +26,7 @@ function renderNode(data = baseData, onSaved = vi.fn()) {
   );
 }
 
-function setupRouteWithStep() {
+function setupRouteWithStep(overrides: { relatedCards?: { cardId: string; role: 'cost' | 'target' | 'material' | 'specialSummon' }[] } = {}) {
   const currentDeck = useComboStore.getState().currentDeck;
   if (!currentDeck) throw new Error('currentDeck is null');
   useComboStore.setState({
@@ -38,7 +40,7 @@ function setupRouteWithStep() {
             type: 'action',
             actions: ['normalSummon'],
             cardId: 'card_1',
-            relatedCards: [],
+            relatedCards: overrides.relatedCards ?? [],
             description: '説明',
             position: { x: 0, y: 0 },
           },
@@ -49,10 +51,13 @@ function setupRouteWithStep() {
 }
 
 describe('ActionNodeEdit', () => {
+  let cardAId = '';
+  let cardBId = '';
+
   beforeEach(async () => {
     resetStore();
-    await useComboStore.getState().addCardToCatalog({ name: 'カードA', type: 'モンスター' });
-    await useComboStore.getState().addCardToCatalog({ name: 'カードB', type: '魔法' });
+    cardAId = await useComboStore.getState().addCardToCatalog({ name: 'カードA', type: 'モンスター' });
+    cardBId = await useComboStore.getState().addCardToCatalog({ name: 'カードB', type: '魔法' });
     setupRouteWithStep();
   });
 
@@ -76,6 +81,30 @@ describe('ActionNodeEdit', () => {
     renderNode();
     fireEvent.click(screen.getByText('+ 関連カード'));
     expect(screen.getAllByText('コスト').length).toBeGreaterThan(0);
+  });
+
+  it('関連カードの role を変更できる', async () => {
+    const user = userEvent.setup();
+    setupRouteWithStep({ relatedCards: [{ cardId: cardAId, role: 'cost' }] });
+    renderNode({ ...createBaseData(), relatedCards: [{ cardId: cardAId, role: 'cost' }] });
+    const selects = screen.getAllByRole('combobox');
+    await user.selectOptions(selects[0], 'target');
+    await user.click(document.body);
+    const step = useComboStore.getState().currentDeck?.route.steps[0];
+    expect(step?.type).toBe('action');
+    expect(step?.relatedCards[0].role).toBe('target');
+  });
+
+  it('関連カードのカードを変更できる', async () => {
+    const user = userEvent.setup();
+    setupRouteWithStep({ relatedCards: [{ cardId: cardAId, role: 'cost' }] });
+    renderNode({ ...createBaseData(), relatedCards: [{ cardId: cardAId, role: 'cost' }] });
+    const selects = screen.getAllByRole('combobox');
+    await user.selectOptions(selects[1], cardBId);
+    await user.click(document.body);
+    const step = useComboStore.getState().currentDeck?.route.steps[0];
+    expect(step?.type).toBe('action');
+    expect(step?.relatedCards[0].cardId).toBe(cardBId);
   });
 
   it('説明を変更してNode外をクリックすると保存される', async () => {

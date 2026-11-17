@@ -401,7 +401,7 @@ function CanvasContent() {
         preventScrolling={false}
         minZoom={0.5}
         maxZoom={2}
-        nodesDraggable
+        nodesDraggable={!isNodeEditing}
         nodesConnectable
         attributionPosition="bottom-right"
       >

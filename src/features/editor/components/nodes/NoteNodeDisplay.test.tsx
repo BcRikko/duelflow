@@ -21,6 +21,13 @@ describe('NoteNodeDisplay', () => {
     expect(screen.queryByText('メモ')).toBeNull();
   });
 
+  it('改行を維持して表示する', () => {
+    renderNode({ description: '1行目\n2行目' });
+    const element = screen.getByText(/1行目/);
+    expect(element.textContent).toContain('\n');
+    expect(element.className).toMatch(/noteText/);
+  });
+
   it('メモ内容が空の場合は「メモ」ラベルを表示する', () => {
     renderNode({ description: '' });
     expect(screen.getByText('メモ')).not.toBeNull();
