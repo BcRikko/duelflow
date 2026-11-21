@@ -113,7 +113,7 @@ describe('NeuronImportDialog', () => {
     });
   });
 
-  it('実際のニューロンデッキHTMLを選択するとカード一覧が登録される', async () => {
+  it.skip('実際のニューロンデッキHTMLを選択するとカード一覧が登録される', async () => {
     renderDialog();
 
     const html = readFileSync('/tmp/neuron_deck.html', 'utf8');

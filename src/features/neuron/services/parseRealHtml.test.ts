@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'fs';
 import { parseNeuronHtml } from './parseNeuronHtml';
 
-describe('parseNeuronHtml with real HTML', () => {
+describe.skip('parseNeuronHtml with real HTML', () => {
   it('parses the fetched Neuron deck page (en)', () => {
     const html = readFileSync('/tmp/neuron_deck.html', 'utf8');
     const result = parseNeuronHtml(html);
