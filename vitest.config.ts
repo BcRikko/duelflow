@@ -7,7 +7,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
-    pool: 'vmThreads',
+    pool: 'threads',
     exclude: ['tests/vrt/**', 'node_modules', 'dist'],
     coverage: {
       provider: 'v8',
