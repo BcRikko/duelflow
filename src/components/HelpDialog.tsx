@@ -1,10 +1,8 @@
-import { lazy, Suspense } from 'react';
 import readme from '../../README.md?raw';
 import { Dialog } from './Dialog';
+import MarkdownContent from './MarkdownContent';
 import dialogStyles from './Dialog.module.css';
 import styles from './HelpDialog.module.css';
-
-const MarkdownContent = lazy(() => import('./MarkdownContent'));
 
 type HelpDialogProps = {
   onClose: () => void;
@@ -25,9 +23,7 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
       }
     >
       <div className={styles.content}>
-        <Suspense fallback={<div className={styles.loading}>読み込み中…</div>}>
-          <MarkdownContent>{readme}</MarkdownContent>
-        </Suspense>
+        <MarkdownContent>{readme}</MarkdownContent>
       </div>
     </Dialog>
   );

@@ -23,6 +23,7 @@ import { CopyrightNotice } from './CopyrightNotice';
 import { NeuronImportDialog } from '../../../neuron/components/NeuronImportDialog';
 import { PlusIcon } from '../../../../components/icons';
 import { getSnapPosition } from './snap';
+import demoPng from '../../../../../docs/images/demo.png';
 import styles from './ComboCanvas.module.css';
 
 const nodeTypes = {
@@ -376,8 +377,20 @@ function CanvasContent() {
     return <EmptyDeckAnnouncement />;
   }
 
+  const isRouteEmpty = route.steps.length === 0;
+
   return (
     <div ref={canvasRef} className={styles.canvas}>
+      {isRouteEmpty ? (
+        <div className={styles.emptyRouteOverlay} aria-hidden="true">
+          <div className={styles.emptyRouteMessage}>
+            <p className={styles.emptyRouteTitle}>カードをここにドラッグ＆ドロップしてください</p>
+            <p className={styles.emptyRouteDescription}>
+              左サイドバーのカード一覧からキャンバスにドラッグすると、ノードが作成されます。
+            </p>
+          </div>
+        </div>
+      ) : null}
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -418,6 +431,12 @@ function EmptyDeckAnnouncement() {
 
   return (
     <div className={styles.empty}>
+      <div
+        className={styles.demoBackground}
+        style={{ backgroundImage: `url(${demoPng})` }}
+        aria-hidden="true"
+        data-testid="demo-background"
+      />
       <div className={styles.emptyContent}>
         <p className={styles.emptyTitle}>まずは「デッキを追加」しましょう</p>
         <p className={styles.emptyDescription}>

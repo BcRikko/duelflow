@@ -21,4 +21,10 @@ describe('MarkdownContent', () => {
     expect(screen.queryByRole('link', { name: 'evil' })).toBeNull();
     expect(screen.getByText('evil')).not.toBeNull();
   });
+
+  it('相対パスの画像は src を保持する', () => {
+    render(<MarkdownContent>![alt](./docs/images/demo.png)</MarkdownContent>);
+    const image = screen.getByRole('img', { name: 'alt' });
+    expect(image.getAttribute('src')).toBe('./docs/images/demo.png');
+  });
 });

@@ -3,7 +3,11 @@ import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
 
 function isAllowedMarkdownUrl(url: string): boolean {
-  return url === '' || /^https?:\/\//i.test(url) || url.startsWith('#');
+  if (url === '') return true;
+  if (/^https?:\/\//i.test(url)) return true;
+  if (url.startsWith('#')) return true;
+  // 同じオリジン内の相対パスを許可する（javascript: などのスキーム付きURLはブロック）
+  return !/^[a-z][a-z0-9+.-]*:/i.test(url);
 }
 
 function markdownUrlTransform(url: string): string | undefined {

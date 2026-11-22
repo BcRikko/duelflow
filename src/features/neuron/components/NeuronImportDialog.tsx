@@ -3,6 +3,10 @@ import { Dialog } from '../../../components/Dialog';
 import dialogStyles from '../../../components/Dialog.module.css';
 import { useComboStore } from '../../editor/store/comboStore';
 import { parseNeuronHtml } from '../services/parseNeuronHtml';
+import mydeckImage from '../../../../docs/images/mydeck.png';
+import downloadImage from '../../../../docs/images/download.png';
+import downloadfileImage from '../../../../docs/images/downloadfile.png';
+import uploadImage from '../../../../docs/images/upload.png';
 import styles from './NeuronImportDialog.module.css';
 
 type NeuronImportDialogProps = {
@@ -80,14 +84,14 @@ export function NeuronImportDialog({ onClose }: NeuronImportDialogProps) {
           >
             遊戯王NEURON
           </a>
-          からダウンロードしたデッキ情報をインポートするための手順です。
+          からダウンロードしたデッキレシピをアップロードするための手順です。アップロードしたデータは、サーバーには送信されず、お使いのブラウザのLocalStorageに保存されます。
         </p>
 
         <ol className={styles.steps}>
           <li className={styles.step}>
             <h3 className={styles.stepTitle}>デッキページを開く</h3>
             <p className={styles.stepDescription}>
-              遊戯王NEURONの利用したいデッキページを開きます。
+              遊戯王NEURONの利用したいデッキページを開きます。未公開のマイデッキでも利用可能です。
               <br />
               例:{" "}
               <a
@@ -99,20 +103,29 @@ export function NeuronImportDialog({ onClose }: NeuronImportDialogProps) {
                 レッドデーモンデッキ
               </a>
             </p>
+            <img
+              src={mydeckImage}
+              alt="遊戯王NEURONのデッキページ"
+              className={styles.image}
+            />
           </li>
 
           <li className={styles.step}>
-            <h3 className={styles.stepTitle}>デッキページを保存する</h3>
+            <h3 className={styles.stepTitle}>デッキレシピのページを保存する</h3>
             <div className={styles.stepDescription}>
-              <p>デッキページを保存します。保存方法は以下のとおりです。</p>
+              <p>以下のいずれかの方法でデッキレシピのページを保存します。</p>
               <ul className={styles.stepList}>
                 <li>Ctrl + s / ⌘ + s</li>
-                <li>ページで右クリックし、コンテキストメニューから「別名で保存…」をクリック_</li>
-                <li>ブラウザのツールバーから ファイル &gt; ページを別名で保存</li>
+                <li>ページで右クリックし、コンテキストメニューから「別名で保存…」をクリック</li>
+                <li>ブラウザのツールバーから「ファイル」&gt;「ページを別名で保存」</li>
               </ul>
+              <img
+                src={downloadImage}
+                alt="デッキレシピのダウンロード方法"
+                className={styles.image}
+              />
               <p>
-                保存が完了すると、HTMLファイルと<code>*_files</code>というフォルダが作成されます。
-                2つをまとめてひとつのフォルダに入れます。
+                保存が完了すると、HTMLファイルと<code>*_files</code>というフォルダが作成されますので、まとめてひとつのフォルダに入れます。
               </p>
               <pre className={styles.codeBlock}>
                 <code>
@@ -121,6 +134,11 @@ export function NeuronImportDialog({ onClose }: NeuronImportDialogProps) {
    └ 遊戯王 デッキレシピ 詳細 _ 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)`}
                 </code>
               </pre>
+              <img
+                src={downloadfileImage}
+                alt="ダウンロード後はhtmlファイルと_filesフォルダーをひとつのフォルダにまとめる"
+                className={styles.image}
+              />
             </div>
           </li>
 
@@ -128,30 +146,39 @@ export function NeuronImportDialog({ onClose }: NeuronImportDialogProps) {
             <h3 className={styles.stepTitle}>デッキレシピを読み込む</h3>
             <div className={styles.stepDescription}>
               <p>
-                HTMLファイルと_filesフォルダーが入った<strong>親フォルダ</strong>を選択します。データはブラウザのローカルストレージに保存され、サーバーには送信されません。
+               ダイアログ下部の 「デッキレシピのアップロード」ボタンをクリックし、HTMLファイルと_filesフォルダーが入った<strong>親フォルダ</strong>を選択します。
               </p>
               <p>
-                デッキレシピのフォルダーを選択すると「このサイトにファイルの表示とコピーを許可しますか？」という確認ダイアログが表示されるので許可します。
+                「◯個のファイルをこのサイトにアップロードしますか？「フォルダー名」のすべてのファイルがアップロードされます。この操作は、サイトを信頼できる場合のみ行ってください。」という注意ダイアログが表示されますが、そのまま「アップロード」ボタンをクリックします。
               </p>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                className={styles.hiddenInput}
-                onChange={handleHtmlFileSelect}
-                disabled={isImporting}
-                // @ts-expect-error webkitdirectory is non-standard but supported in Chromium browsers
-                webkitdirectory=""
-                directory=""
+              <img
+                src={uploadImage}
+                alt="デッキレシピのフォルダーを選択する"
+                className={styles.image}
               />
-              <button
-                type="button"
-                className={styles.import}
-                onClick={handleSelectFolder}
-                disabled={isImporting}
-              >
-                {isImporting ? 'インポート中...' : 'デッキレシピのフォルダーを選択'}
-              </button>
+              <small>※当Webアプリは、<strong>サーバーにデータを送信しません。</strong>アップロードしたファイルは、お使いのブラウザのLocalStorageに保存されます。アップロードしたデータを削除したい場合は、画面上部のデッキの削除、またはブラウザの開発者ツールから削除できます。</small>
+
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className={styles.hiddenInput}
+                  onChange={handleHtmlFileSelect}
+                  disabled={isImporting}
+                  // @ts-expect-error webkitdirectory is non-standard but supported in Chromium browsers
+                  webkitdirectory=""
+                  directory=""
+                />
+
+                <button
+                  type="button"
+                  className={styles.import}
+                  onClick={handleSelectFolder}
+                  disabled={isImporting}
+                >
+                  {isImporting ? 'インポート中...' : 'デッキレシピのアップロード'}
+                </button>
+              </div>
             </div>
           </li>
         </ol>

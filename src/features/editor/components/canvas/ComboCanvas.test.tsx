@@ -29,6 +29,7 @@ describe('ComboCanvas', () => {
       ),
     ).not.toBeNull();
     expect(screen.getByRole('button', { name: 'デッキを追加' })).not.toBeNull();
+    expect(screen.getByTestId('demo-background')).not.toBeNull();
   });
 
   it('デッキがある場合はクラッシュせずにレンダリングする', () => {
@@ -51,6 +52,16 @@ describe('ComboCanvas', () => {
       },
     });
     expect(() => render(<ComboCanvas />)).not.toThrow();
+  });
+
+  it('デッキがあるがルートが空の場合、ドラッグ＆ドロップを促すメッセージを表示する', () => {
+    render(<ComboCanvas />);
+    expect(screen.getByText('カードをここにドラッグ＆ドロップしてください')).not.toBeNull();
+    expect(
+      screen.getByText(
+        '左サイドバーのカード一覧からキャンバスにドラッグすると、ノードが作成されます。',
+      ),
+    ).not.toBeNull();
   });
 
   it('メモのドロップでnoteステップを追加する', () => {

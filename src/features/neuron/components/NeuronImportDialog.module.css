@@ -122,6 +122,14 @@
   display: none;
 }
 
+.image {
+  max-width: 100%;
+  height: auto;
+  margin-top: var(--df-space-5);
+  border: 1px solid var(--df-color-border-light);
+  border-radius: var(--df-radius-md);
+}
+
 .import {
   padding: var(--df-space-4) var(--df-space-8);
   border-radius: var(--df-radius-sm);
@@ -129,6 +137,7 @@
   background: var(--df-color-primary);
   color: var(--df-color-bg-surface);
   transition: background var(--df-transition-fast);
+  margin-block: var(--df-space-8);
 }
 
 .import:hover:not(:disabled) {

@@ -34,9 +34,16 @@ describe('NeuronImportDialog', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('デッキレシピのフォルダー選択ボタンが表示される', () => {
+  it('デッキレシピのアップロードボタンが表示される', () => {
     renderDialog();
-    expect(screen.getByRole('button', { name: 'デッキレシピのフォルダーを選択' })).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'デッキレシピのアップロード' })).not.toBeNull();
+  });
+
+  it('デッキページのサンプル画像が表示される', () => {
+    renderDialog();
+    const image = screen.getByAltText('遊戯王NEURONのデッキページ');
+    expect(image).not.toBeNull();
+    expect(image.tagName).toBe('IMG');
   });
 
   it('HTMLフォルダを選択するとインポート処理が呼ばれる', async () => {

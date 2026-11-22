@@ -4,6 +4,7 @@
 }
 
 .empty {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,7 +12,19 @@
   color: var(--df-color-text-tertiary);
 }
 
+.demoBackground {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
 .emptyContent {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -53,4 +66,36 @@
 .emptyAddIcon {
   width: 18px;
   height: 18px;
+}
+
+.emptyRouteOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: var(--df-z-dropdown);
+}
+
+.emptyRouteMessage {
+  text-align: center;
+  padding: var(--df-space-12);
+  border: 2px dashed var(--df-color-border-default);
+  border-radius: var(--df-radius-lg);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: var(--df-shadow-md);
+}
+
+.emptyRouteTitle {
+  font-size: var(--df-text-md);
+  font-weight: var(--df-font-semibold);
+  color: var(--df-color-text-heading);
+  margin-bottom: var(--df-space-4);
+}
+
+.emptyRouteDescription {
+  font-size: var(--df-text-sm);
+  color: var(--df-color-text-secondary);
+  max-width: 360px;
 }
