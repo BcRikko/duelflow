@@ -107,6 +107,24 @@ describe('ActionNodeEdit', () => {
     expect(step?.relatedCards[0].cardId).toBe(cardBId);
   });
 
+  it('関連カードの選択肢はデッキに含まれるカードに限定される', () => {
+    setupRouteWithStep({ relatedCards: [{ cardId: cardAId, role: 'cost' }] });
+    useComboStore.setState((state) => {
+      if (!state.currentDeck) return state;
+      return {
+        currentDeck: {
+          ...state.currentDeck,
+          cards: state.currentDeck.cards.filter((entry) => entry.cardId !== cardBId),
+        },
+      };
+    });
+    renderNode({ ...createBaseData(), relatedCards: [{ cardId: cardAId, role: 'cost' }] });
+    const cardSelect = screen.getAllByRole('combobox')[1];
+    const optionValues = Array.from(cardSelect.querySelectorAll('option')).map((option) => option.value);
+    expect(optionValues).toContain(cardAId);
+    expect(optionValues).not.toContain(cardBId);
+  });
+
   it('説明を変更してNode外をクリックすると保存される', async () => {
     const user = userEvent.setup();
     renderNode();

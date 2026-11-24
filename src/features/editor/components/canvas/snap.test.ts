@@ -17,7 +17,7 @@ describe('getSnapPosition', () => {
 
   it('しきい値内で左端が揃うようにスナップする', () => {
     const node = createNode('a', 8, 100);
-    const other = createNode('b', 0, 0);
+    const other = createNode('b', 0, 210);
     const result = getSnapPosition(node, [other]);
     expect(result.x).toBe(0);
     expect(result.y).toBe(100);
@@ -26,7 +26,7 @@ describe('getSnapPosition', () => {
 
   it('しきい値内で右端が揃うようにスナップする', () => {
     const node = createNode('a', 105, 100, 100);
-    const other = createNode('b', 0, 0);
+    const other = createNode('b', 0, 130);
     const result = getSnapPosition(node, [other]);
     expect(result.x).toBe(100);
     expect(result.y).toBe(100);
@@ -48,17 +48,27 @@ describe('getSnapPosition', () => {
     expect(result.y).toBe(30);
   });
 
+  it('従来より広い距離でもスナップする', () => {
+    const node = createNode('a', 18, 300);
+    const other = createNode('b', 0, 0);
+    const result = getSnapPosition(node, [other]);
+    expect(result.x).toBe(0);
+    expect(result.y).toBe(300);
+    expect(result.snapped).toBe(true);
+  });
+
   it('しきい値を超える場合はスナップしない', () => {
-    const node = createNode('a', 30, 100);
+    const node = createNode('a', 30, 200);
     const other = createNode('b', 0, 0);
     const result = getSnapPosition(node, [other]);
     expect(result.x).toBe(30);
+    expect(result.y).toBe(200);
     expect(result.snapped).toBe(false);
   });
 
   it('中央も揃えられる', () => {
     const node = createNode('a', 55, 100, 100);
-    const other = createNode('b', 0, 0);
+    const other = createNode('b', 0, 130);
     const result = getSnapPosition(node, [other]);
     expect(result.x).toBe(50);
     expect(result.y).toBe(100);

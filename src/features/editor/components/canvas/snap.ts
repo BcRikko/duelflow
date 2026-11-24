@@ -1,7 +1,7 @@
 import type { Node } from '@xyflow/react';
 
-const SNAP_THRESHOLD = 10;
-const DEFAULT_NODE_WIDTH = 200;
+const SNAP_THRESHOLD = 24;
+const DEFAULT_NODE_WIDTH = 240;
 const DEFAULT_NODE_HEIGHT = 80;
 
 type SnapResult = {

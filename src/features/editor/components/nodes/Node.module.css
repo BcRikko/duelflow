@@ -39,6 +39,7 @@
 }
 
 .node.note {
+  width: var(--df-node-width-action);
   background: var(--df-color-type-note-bg);
   border-color: var(--df-color-type-note-border);
 }

@@ -1,5 +1,4 @@
-import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { actionDefinitions } from '../../../../shared/actionDefinitions';
 import { stepCardRoleLabels } from '../../../combo/model/schema';
 import type { StepCardRole } from '../../../combo/model/types';
@@ -19,8 +18,18 @@ type Props = {
 export const ActionNodeEdit = memo(function ActionNodeEdit({ id, data, selected, onSaved }: Props) {
   const updateStep = useComboStore((state) => state.updateStep);
   const setNodeEditing = useComboStore((state) => state.setNodeEditing);
-  const cardNames = useComboStore(
-    useShallow((state) => Object.fromEntries(state.cards.map((c) => [c.id, c.name]))),
+  const currentDeck = useComboStore((state) => state.currentDeck);
+  const cards = useComboStore((state) => state.cards);
+  const deckCardIds = useMemo(
+    () => new Set(currentDeck?.cards.map((entry) => entry.cardId) ?? []),
+    [currentDeck],
+  );
+  const cardNames = useMemo(
+    () =>
+      Object.fromEntries(
+        cards.filter((card) => deckCardIds.has(card.id)).map((card) => [card.id, card.name]),
+      ),
+    [cards, deckCardIds],
   );
   const nodeRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
