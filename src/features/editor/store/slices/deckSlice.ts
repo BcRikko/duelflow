@@ -19,6 +19,7 @@ import {
   applyStepUpdates,
   createEmptyDeck,
   createInitialRoute,
+  removeStepFromRoute,
   updateCurrentRoute,
   updateRouteConnection,
   updateRouteStep,
@@ -341,46 +342,66 @@ export const createDeckSlice: StateCreator<
     });
   },
 
+  updateStepPositions: (updates) => {
+    set((state) => {
+      const deck = state.currentDeck;
+      if (!deck) return {};
+
+      const positionMap = new Map(updates.map((u) => [u.stepId, u.position]));
+      return {
+        currentDeck: updateCurrentRoute(deck, (route) => ({
+          ...route,
+          steps: route.steps.map((step) =>
+            positionMap.has(step.id) ? { ...step, position: positionMap.get(step.id)! } : step,
+          ),
+        })),
+      };
+    });
+  },
+
   deleteStep: (stepId) => {
     set((state) => {
       const deck = state.currentDeck;
       if (!deck) return {};
-      const route = deck.route;
-
-      const incoming = route.connections.filter((c) => c.target === stepId);
-      const outgoing = route.connections.filter((c) => c.source === stepId);
-
-      let newConnections = route.connections.filter(
-        (c) => c.source !== stepId && c.target !== stepId,
-      );
-      const existingConnections = new Set(
-        newConnections.map((c) => `${c.source}->${c.target}`),
-      );
-      for (const inc of incoming) {
-        for (const out of outgoing) {
-          const key = `${inc.source}->${out.target}`;
-          if (existingConnections.has(key)) continue;
-          existingConnections.add(key);
-          newConnections.push({
-            id: generateId('conn_'),
-            source: inc.source,
-            target: out.target,
-          });
-        }
-      }
-
-      const newSteps = route.steps.filter((s) => s.id !== stepId);
 
       return {
-        currentDeck: updateCurrentRoute(deck, (r) => ({
-          ...r,
-          steps: newSteps,
-          connections: newConnections,
-        })),
+        currentDeck: updateCurrentRoute(deck, () => removeStepFromRoute(deck.route, stepId)),
         selection:
           state.selection?.type === 'step' && state.selection.id === stepId
             ? null
             : state.selection,
+      };
+    });
+  },
+
+  deleteSteps: (stepIds) => {
+    set((state) => {
+      const deck = state.currentDeck;
+      if (!deck || stepIds.length === 0) return {};
+
+      const deletedIds = new Set(stepIds);
+      const updatedRoute = stepIds.reduce(
+        (route, stepId) => removeStepFromRoute(route, stepId),
+        deck.route,
+      );
+
+      let nextSelection = state.selection;
+      if (state.selection?.type === 'step' && deletedIds.has(state.selection.id)) {
+        nextSelection = null;
+      } else if (state.selection?.type === 'steps') {
+        const remaining = state.selection.ids.filter((id) => !deletedIds.has(id));
+        if (remaining.length === 0) {
+          nextSelection = null;
+        } else if (remaining.length === 1) {
+          nextSelection = { type: 'step', id: remaining[0]! };
+        } else {
+          nextSelection = { type: 'steps', ids: remaining };
+        }
+      }
+
+      return {
+        currentDeck: updateCurrentRoute(deck, () => updatedRoute),
+        selection: nextSelection,
       };
     });
   },

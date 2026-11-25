@@ -4,6 +4,13 @@ import { IDBFactory } from 'fake-indexeddb';
 // @ts-expect-error fake-indexeddb の型と global の型が完全には一致しない
 globalThis.indexedDB = new IDBFactory();
 
+// jsdom には ResizeObserver がないためダミーを用意
+globalThis.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 // localStorage / IndexedDB をテストごとにクリア
 beforeEach(async () => {
   localStorage.clear();

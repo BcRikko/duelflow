@@ -247,7 +247,10 @@ export const ActionNodeDisplay = memo(function ActionNodeDisplay({
     <div
       ref={nodeRef}
       className={`${styles.node} ${styles.action} ${getTypeClass(data.cardType)} ${selected ? styles.selected : ''}`}
-      onClick={onEdit}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey) return;
+        onEdit();
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();

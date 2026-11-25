@@ -47,8 +47,11 @@ export function clearUiState(): void {
 function isValidSelection(value: unknown): value is EditorSelection {
   if (value === null) return true;
   if (typeof value !== 'object' || value === null) return false;
-  const obj = value as { type?: unknown; id?: unknown };
-  return (
-    (obj.type === 'step' || obj.type === 'connection') && typeof obj.id === 'string'
-  );
+  const obj = value as { type?: unknown; id?: unknown; ids?: unknown };
+  if (obj.type === 'connection') return typeof obj.id === 'string';
+  if (obj.type === 'step') return typeof obj.id === 'string';
+  if (obj.type === 'steps') {
+    return Array.isArray(obj.ids) && obj.ids.every((id) => typeof id === 'string');
+  }
+  return false;
 }

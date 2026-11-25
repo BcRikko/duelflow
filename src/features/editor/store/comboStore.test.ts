@@ -553,6 +553,92 @@ describe('ドキュメント入出力', () => {
   });
 });
 
+describe('複数選択と整列', () => {
+  async function addTestStep(name = 'TestCard', x = 0, y = 0) {
+    const cardId = await addTestCard(name);
+    return useComboStore.getState().addStepAtPosition(
+      {
+        type: 'action',
+        actions: [],
+        cardId,
+        relatedCards: [],
+        description: '',
+      },
+      { x, y },
+    );
+  }
+
+  it('複数ステップを選択する', async () => {
+    const id1 = await addTestStep('A');
+    const id2 = await addTestStep('B');
+    useComboStore.getState().selectSteps([id1, id2]);
+    const selection = useComboStore.getState().selection;
+    expect(selection).toEqual({ type: 'steps', ids: [id1, id2] });
+  });
+
+  it('トグル選択でステップを追加・解除する', async () => {
+    const id1 = await addTestStep('A');
+    const id2 = await addTestStep('B');
+    useComboStore.getState().clearSelection();
+    const { toggleStepSelection } = useComboStore.getState();
+
+    toggleStepSelection(id1);
+    expect(useComboStore.getState().selection).toEqual({ type: 'step', id: id1 });
+
+    toggleStepSelection(id2);
+    expect(useComboStore.getState().selection).toEqual({ type: 'steps', ids: [id1, id2] });
+
+    toggleStepSelection(id1);
+    expect(useComboStore.getState().selection).toEqual({ type: 'step', id: id2 });
+
+    toggleStepSelection(id2);
+    expect(useComboStore.getState().selection).toBeNull();
+  });
+
+  it('一括位置更新で複数ステップを同時に移動する', async () => {
+    const id1 = await addTestStep('A', 0, 0);
+    const id2 = await addTestStep('B', 100, 100);
+    useComboStore.getState().updateStepPositions([
+      { stepId: id1, position: { x: 10, y: 20 } },
+      { stepId: id2, position: { x: 110, y: 120 } },
+    ]);
+
+    const route = getCurrentRoute();
+    expect(route.steps.find((s) => s.id === id1)?.position).toEqual({ x: 10, y: 20 });
+    expect(route.steps.find((s) => s.id === id2)?.position).toEqual({ x: 110, y: 120 });
+  });
+
+  it('複数削除を1回の履歴で元に戻せる', async () => {
+    const id1 = await addTestStep('A');
+    const id2 = await addTestStep('B');
+    const id3 = await addTestStep('C');
+    useComboStore.getState().selectSteps([id1, id2, id3]);
+
+    useComboStore.getState().deleteSteps([id1, id2]);
+    expect(getCurrentRoute().steps).toHaveLength(1);
+    expect(useComboStore.getState().selection).toEqual({ type: 'step', id: id3 });
+
+    performUndo();
+    expect(getCurrentRoute().steps).toHaveLength(3);
+  });
+
+  it('一括位置更新を1回の履歴で元に戻せる', async () => {
+    const id1 = await addTestStep('A', 0, 0);
+    const id2 = await addTestStep('B', 100, 100);
+    useComboStore.getState().selectSteps([id1, id2]);
+
+    useComboStore.getState().updateStepPositions([
+      { stepId: id1, position: { x: 50, y: 50 } },
+      { stepId: id2, position: { x: 150, y: 150 } },
+    ]);
+
+    performUndo();
+    const route = getCurrentRoute();
+    expect(route.steps.find((s) => s.id === id1)?.position).toEqual({ x: 0, y: 0 });
+    expect(route.steps.find((s) => s.id === id2)?.position).toEqual({ x: 100, y: 100 });
+  });
+});
+
 describe('履歴', () => {
   it('Undo で直前の状態に戻る', async () => {
     useComboStore.getState().updateRoute({ name: 'Changed' });

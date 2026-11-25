@@ -55,6 +55,34 @@ export function updateRouteStep(route: Route, stepId: string, updater: (step: St
   };
 }
 
+export function removeStepFromRoute(route: Route, stepId: string): Route {
+  const incoming = route.connections.filter((c) => c.target === stepId);
+  const outgoing = route.connections.filter((c) => c.source === stepId);
+
+  let newConnections = route.connections.filter(
+    (c) => c.source !== stepId && c.target !== stepId,
+  );
+  const existingConnections = new Set(newConnections.map((c) => `${c.source}->${c.target}`));
+  for (const inc of incoming) {
+    for (const out of outgoing) {
+      const key = `${inc.source}->${out.target}`;
+      if (existingConnections.has(key)) continue;
+      existingConnections.add(key);
+      newConnections.push({
+        id: generateId('conn_'),
+        source: inc.source,
+        target: out.target,
+      });
+    }
+  }
+
+  return {
+    ...route,
+    steps: route.steps.filter((s) => s.id !== stepId),
+    connections: newConnections,
+  };
+}
+
 export function updateRouteConnection(
   route: Route,
   connectionId: string,

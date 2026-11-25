@@ -46,6 +46,28 @@ describe('uiStorage', () => {
       localStorage.setItem(UI_KEY, JSON.stringify({ selection: { type: 'step', id: 1 } }));
       expect(loadUiState().selection).toBeNull();
     });
+
+    it('有効な複数ステップ選択を読み込める', () => {
+      localStorage.setItem(
+        UI_KEY,
+        JSON.stringify({
+          selectedDeckId: 'deck_1',
+          selection: { type: 'steps', ids: ['step_1', 'step_2'] },
+        }),
+      );
+      expect(loadUiState()).toEqual({
+        selectedDeckId: 'deck_1',
+        selection: { type: 'steps', ids: ['step_1', 'step_2'] },
+      });
+    });
+
+    it('selection の ids が不正な場合は null を返す', () => {
+      localStorage.setItem(
+        UI_KEY,
+        JSON.stringify({ selection: { type: 'steps', ids: ['step_1', 2] } }),
+      );
+      expect(loadUiState().selection).toBeNull();
+    });
   });
 
   describe('saveUiState', () => {

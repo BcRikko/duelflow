@@ -23,8 +23,10 @@ import { CopyrightNotice } from './CopyrightNotice';
 import { NeuronImportDialog } from '../../../neuron/components/NeuronImportDialog';
 import { PlusIcon } from '../../../../components/icons';
 import { getSnapPosition } from './snap';
+import { SelectionToolbar } from './SelectionToolbar';
 import demoPng from '../../../../../docs/images/demo.png';
 import styles from './ComboCanvas.module.css';
+import { getSelectedStepIds } from '../../store/types';
 
 const nodeTypes = {
   actionNode: ActionNode,
@@ -43,12 +45,14 @@ function CanvasContent() {
   const addNodeForm = useComboStore((state) => state.addNodeForm);
   const isNodeEditing = useComboStore((state) => state.isNodeEditing);
   const selectStep = useComboStore((state) => state.selectStep);
+  const toggleStepSelection = useComboStore((state) => state.toggleStepSelection);
   const selectConnection = useComboStore((state) => state.selectConnection);
   const addConnection = useComboStore((state) => state.addConnection);
   const updateConnectionEndpoints = useComboStore((state) => state.updateConnectionEndpoints);
-  const updateStepPosition = useComboStore((state) => state.updateStepPosition);
+  const updateStepPositions = useComboStore((state) => state.updateStepPositions);
   const addStepAtPosition = useComboStore((state) => state.addStepAtPosition);
   const deleteStep = useComboStore((state) => state.deleteStep);
+  const deleteSteps = useComboStore((state) => state.deleteSteps);
   const deleteConnection = useComboStore((state) => state.deleteConnection);
   const clearSelection = useComboStore((state) => state.clearSelection);
 
@@ -211,10 +215,11 @@ function CanvasContent() {
 
   // Selection effect: update selected flags without changing positions
   useEffect(() => {
+    const selectedStepIds = new Set(getSelectedStepIds(selection));
     setNodes((current) =>
       current.map((node) => ({
         ...node,
-        selected: selection?.type === 'step' && selection.id === node.id,
+        selected: selectedStepIds.has(node.id),
       })),
     );
     setEdges((current) =>
@@ -244,18 +249,24 @@ function CanvasContent() {
         deleteConnection(selection.id);
       } else if (selection?.type === 'step') {
         deleteStep(selection.id);
+      } else if (selection?.type === 'steps') {
+        deleteSteps(selection.ids);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selection, deleteConnection, deleteStep]);
+  }, [selection, deleteConnection, deleteStep, deleteSteps]);
 
   const onNodeClick = useCallback(
-    (_event: React.MouseEvent, node: Node) => {
-      selectStep(node.id);
+    (event: React.MouseEvent, node: Node) => {
+      if (event.metaKey || event.ctrlKey) {
+        toggleStepSelection(node.id);
+      } else {
+        selectStep(node.id);
+      }
     },
-    [selectStep],
+    [selectStep, toggleStepSelection],
   );
 
   const onEdgeClick = useCallback(
@@ -292,11 +303,20 @@ function CanvasContent() {
 
   const onNodeDragStop = useCallback(
     (_event: MouseEvent | TouchEvent, node: Node) => {
-      const otherNodes = nodes.filter((n) => n.id !== node.id);
-      const { x, y } = getSnapPosition(node, otherNodes);
-      updateStepPosition(node.id, { x, y });
+      const selectedStepIds = new Set(getSelectedStepIds(useComboStore.getState().selection));
+      const draggedNodes =
+        selectedStepIds.size > 1 && selectedStepIds.has(node.id)
+          ? nodes.filter((n) => selectedStepIds.has(n.id))
+          : [node];
+      const otherNodes = nodes.filter((n) => !selectedStepIds.has(n.id));
+
+      const updates = draggedNodes.map((target) => {
+        const { x, y } = getSnapPosition(target, otherNodes);
+        return { stepId: target.id, position: { x, y } };
+      });
+      updateStepPositions(updates);
     },
-    [updateStepPosition, nodes],
+    [nodes, updateStepPositions],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -420,6 +440,7 @@ function CanvasContent() {
       >
         <Background gap={16} size={1} />
         <CanvasControls />
+        <SelectionToolbar />
         <CopyrightNotice />
       </ReactFlow>
     </div>

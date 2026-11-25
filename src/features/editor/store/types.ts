@@ -12,8 +12,15 @@ import type { NodeFormData } from '../model/form';
 
 export type EditorSelection =
   | { type: 'step'; id: string }
+  | { type: 'steps'; ids: string[] }
   | { type: 'connection'; id: string }
   | null;
+
+export function getSelectedStepIds(selection: EditorSelection): string[] {
+  if (selection?.type === 'step') return [selection.id];
+  if (selection?.type === 'steps') return selection.ids;
+  return [];
+}
 
 export type DeckSummary = {
   deckId: string;
@@ -31,6 +38,8 @@ export type UIState = {
 export type UIActions = {
   setNodeEditing: (editing: boolean) => void;
   selectStep: (id: string | null) => void;
+  selectSteps: (ids: string[]) => void;
+  toggleStepSelection: (id: string) => void;
   selectConnection: (id: string | null) => void;
   clearSelection: () => void;
   selectCardForAdd: (id: string | null) => void;
@@ -90,7 +99,9 @@ export type DeckActions = {
     ): void;
   };
   updateStepPosition: (stepId: string, position: { x: number; y: number }) => void;
+  updateStepPositions: (updates: { stepId: string; position: { x: number; y: number } }[]) => void;
   deleteStep: (stepId: string) => void;
+  deleteSteps: (stepIds: string[]) => void;
   addConnection: (connection: Omit<Connection, 'id'>) => string;
   updateConnection: (id: string, updates: Partial<Omit<Connection, 'id'>>) => void;
   updateConnectionEndpoints: (id: string, source: string, target: string) => void;

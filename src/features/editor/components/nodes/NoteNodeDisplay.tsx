@@ -21,7 +21,10 @@ export const NoteNodeDisplay = memo(function NoteNodeDisplay({
   return (
     <div
       className={`${styles.node} ${styles.note} ${selected ? styles.selected : ''}`}
-      onClick={onEdit}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey) return;
+        onEdit();
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();

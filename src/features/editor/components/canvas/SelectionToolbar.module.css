@@ -1,0 +1,42 @@
+.toolbar {
+  display: flex;
+  gap: var(--df-space-2);
+  padding: var(--df-space-2);
+  background: var(--df-color-bg-surface);
+  border: 1px solid var(--df-color-border-input);
+  border-radius: var(--df-radius-xl);
+  box-shadow: var(--df-shadow-md);
+  margin-top: var(--df-space-4);
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--df-radius-lg);
+  color: var(--df-color-text-primary);
+  transition: background var(--df-transition-fast), opacity var(--df-transition-fast);
+}
+
+.button:hover:not(:disabled) {
+  background: var(--df-color-bg-hover);
+}
+
+.button:active:not(:disabled) {
+  background: var(--df-color-bg-active);
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+}

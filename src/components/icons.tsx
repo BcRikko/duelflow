@@ -144,3 +144,43 @@ export function HelpIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   );
 }
+
+export function AlignVerticalCenterIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="3" y="6" width="6" height="12" rx="1" />
+      <rect x="15" y="6" width="6" height="12" rx="1" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+    </Icon>
+  );
+}
+
+export function AlignHorizontalCenterIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="6" y="3" width="12" height="6" rx="1" />
+      <rect x="6" y="15" width="12" height="6" rx="1" />
+      <line x1="12" y1="2" x2="12" y2="22" />
+    </Icon>
+  );
+}
+
+export function DistributeHorizontalIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="3" y="7" width="4" height="10" rx="1" />
+      <rect x="10" y="7" width="4" height="10" rx="1" />
+      <rect x="17" y="7" width="4" height="10" rx="1" />
+    </Icon>
+  );
+}
+
+export function DistributeVerticalIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="7" y="3" width="10" height="4" rx="1" />
+      <rect x="7" y="10" width="10" height="4" rx="1" />
+      <rect x="7" y="17" width="10" height="4" rx="1" />
+    </Icon>
+  );
+}
